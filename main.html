@@ -11,12 +11,71 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden; 
+            overflow-x: hidden; 
             background-color: #a29fdf;
-   }
+       
+     #music-status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 15px;
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #6c5ce7;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        z-index: 1000;
+        cursor: pointer;
+        border: 1px solid #6c5ce7;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
-  
+
 <body>
+  <div id="music-status" onclick="togglePlay()">확인 중...</div>
+
   <audio id="bgm" src="그리고 그리며.mp3" loop></audio>
+
+  <script>
+    const bgm = document.getElementById('bgm');
+    const statusDisplay = document.getElementById('music-status');
+
+    // 재생 상태 업데이트 함수
+    function updateStatus() {
+      if (!bgm.paused) {
+        statusDisplay.innerText = "🎵 음악 재생 중";
+        statusDisplay.style.backgroundColor = "rgba(108, 92, 231, 0.9)";
+        statusDisplay.style.color = "white";
+      } else {
+        statusDisplay.innerText = "🔇 클릭하여 음악 재생";
+        statusDisplay.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+        statusDisplay.style.color = "#6c5ce7";
+      }
+    }
+
+    // 클릭 시 재생/정지 토글
+    function togglePlay() {
+      if (bgm.paused) {
+        bgm.play();
+      } else {
+        bgm.pause();
+      }
+    }
+
+    // 오디오 이벤트 리스너: 재생되거나 멈출 때 상태 업데이트
+    bgm.onplay = updateStatus;
+    bgm.onpause = updateStatus;
+
+    // 페이지 로드 시 자동 재생 시도
+    window.onload = function() {
+      bgm.play().then(() => {
+        updateStatus();
+      }).catch(() => {
+        // 자동 재생이 막혔을 경우
+        statusDisplay.innerText = "🔇 클릭하여 음악 재생";
+      });
+    };
+  </script>
 </body>
+</html>
