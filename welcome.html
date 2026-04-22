@@ -18,11 +18,12 @@
             top: 15%; /* 로고가 위치할 높이 */
             left: 50%;
             transform: translateX(-50%);
-            width: 60%; /* 로고 크기 조절 */
-            max-width: 500px;
+            width: 50%; /* 로고 크기 조절 */
+            max-width: 800px;
     
             /* 애니메이션 적용: 이름, 지속시간, 타이밍함수(가속도) */
             animation: bounceUp 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation-delay: 0.8s;
         }
 
         /* 애니메이션 정의 */
@@ -31,7 +32,7 @@
                 opacity: 0;
                 transform: translate(-50%, 200px); /* 화면 아래 200px 지점에서 시작 */
             }
-            60% {
+            70% {
                 opacity: 1;
                 transform: translate(-50%, -20px); /* 목표보다 살짝 위로 올라감 (튕기는 효과) */
             }
