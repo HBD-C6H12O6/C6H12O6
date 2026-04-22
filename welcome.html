@@ -11,6 +11,39 @@
             font-weight: normal;
             font-display: swap;
         }
+
+        /* 로고 스타일 및 애니메이션 설정 */
+        .logo-animation {
+            position: absolute;
+            top: 15%; /* 로고가 위치할 높이 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%; /* 로고 크기 조절 */
+            max-width: 500px;
+    
+            /* 애니메이션 적용: 이름, 지속시간, 타이밍함수(가속도) */
+            animation: bounceUp 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* 애니메이션 정의 */
+        @keyframes bounceUp {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, 200px); /* 화면 아래 200px 지점에서 시작 */
+            }
+            60% {
+                opacity: 1;
+                transform: translate(-50%, -20px); /* 목표보다 살짝 위로 올라감 (튕기는 효과) */
+            }
+            80% {
+                transform: translate(-50%, 10px); /* 다시 살짝 내려옴 */
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, 0); /* 최종 위치 고정 */
+            }
+        }
+
     
         /* 화면 기본 설정 */
         body, html {
@@ -71,10 +104,10 @@
 <body>
 
     <div class="entrance-container">
-        <a href="main.html" class="enter-button">
-            <span>🍇</span>입장하기
-        </a>
-    </div>
+    <img src="logo.png" class="logo-animation" alt="C6H12O6 Logo">
+    <a href="main.html" class="enter-button">
+        <span>🍇</span>입장하기
+    </a>
 
 </body>
 </html>
