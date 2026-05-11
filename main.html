@@ -37,12 +37,54 @@
         cursor: pointer;
         border: 1px solid #6c5ce7;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+       
+    }
+
+    /* 우측 고정 버튼 스타일 */
+    .side-test-btn {
+        position: fixed;
+        right: 20px;
+        top: 50%; /* 화면 세로 중앙 */
+        transform: translateY(-50%); /* 정확한 중앙 정렬 */
+    
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* 버튼 사이 간격 */
+        z-index: 1000;
+    }
+
+    .test-link {
+        width: 120px;
+        padding: 15px 10px;
+        background-color: #6c5ce7; /* 보라색 */
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: bold;
+        border-radius: 15px 0 0 15px; /* 왼쪽만 둥근 모양 */
+        box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+/* 마우스를 올렸을 때 효과 */
+    .test-link:hover {
+        background-color: #a29bfe;
+        transform: translateX(-5px); /* 왼쪽으로 살짝 튀어나옴 */
     }
   </style>
 </head>
 
 <body>
   <div id="music-status" onclick="togglePlay()">확인 중...</div>
+
+  <div class="fixed-test-btn">
+    <a href="https://smore.im/quiz/Cuw1QEnqjA" target="_blank" class="test-button">
+        <span class="test-icon">🔮</span>
+        캐릭터<br>테스트
+    </a>
+  </div>
 
   <audio id="bgm" src="bgm.m4a" loop></audio>
 
