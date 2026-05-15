@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Earth – 1단계: 우주 지도 완성</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+
+  :root {
+    --bg:       #020510;
+    --deep:     #060d1f;
+    --panel:    #0a1530;
+    --border:   #1a3060;
+    --neon:     #00e5ff;
+    --neon2:    #7b2fff;
+    --gold:     #ffd84d;
+    --danger:   #ff4466;
+    --success:  #00ff99;
+    --text:     #c8deff;
+    --dim:      #4a6080;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ── 별 배경 ── */
+  #starfield {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+
+  /* ── 레이아웃 ── */
+  #app {
+    position: relative; z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    text-align: center;
+    padding: 24px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  header .stage-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--neon);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(18px, 4vw, 28px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 20px var(--neon);
+    letter-spacing: 2px;
+  }
+  header p {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--dim);
+    letter-spacing: 1px;
+  }
+
+  /* ── HUD 바 ── */
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .hud-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .hud-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--neon);
+    text-shadow: 0 0 10px var(--neon);
+  }
+  .hud-value.gold { color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+  .hud-value.success { color: var(--success); text-shadow: 0 0 10px var(--success); }
+
+  /* ── 미션 카드 ── */
+  .mission-card {
+    background: linear-gradient(135deg, #0a1830, #050e22);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--neon);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .mission-card strong { color: var(--gold); font-size: 12px; letter-spacing: 1px; }
+
+  /* ── 섹션 제목 ── */
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--neon);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  /* ══════════════════════════════════════
+     PART A: 우주 지도 퍼즐
+  ══════════════════════════════════════ */
+  #puzzle-section { margin-bottom: 40px; }
+
+  .puzzle-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 600px) {
+    .puzzle-wrapper { grid-template-columns: 1fr; }
+  }
+
+  /* 완성 캔버스 */
+  .canvas-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+  .canvas-box label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  #drop-area {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #030915;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .3s;
+  }
+  #drop-area.drag-over { border-color: var(--neon); box-shadow: 0 0 20px rgba(0,229,255,.15); }
+  #drop-area .slot {
+    position: absolute;
+    border: 1px dashed rgba(0,229,255,.2);
+    border-radius: 4px;
+    transition: background .3s;
+  }
+  #drop-area .slot.filled { border-color: var(--success); background: rgba(0,255,153,.05); }
+
+  /* 조각 트레이 */
+  .pieces-tray {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .pieces-tray label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  #pieces-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .puzzle-piece {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    cursor: grab;
+    border: 2px solid var(--border);
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    position: relative;
+    overflow: hidden;
+    background: var(--deep);
+  }
+  .puzzle-piece:hover {
+    transform: scale(1.04);
+    border-color: var(--neon);
+    box-shadow: 0 0 14px rgba(0,229,255,.3);
+  }
+  .puzzle-piece.dragging { opacity: .4; cursor: grabbing; }
+  .puzzle-piece canvas { width:100%; height:100%; display:block; }
+
+  /* 퍼즐 완료 배너 */
+  #puzzle-complete {
+    display: none;
+    text-align: center;
+    padding: 16px;
+    background: rgba(0,255,153,.08);
+    border: 1px solid var(--success);
+    border-radius: 10px;
+    margin-top: 14px;
+    color: var(--success);
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    animation: pulse-success 1.5s infinite;
+  }
+  @keyframes pulse-success {
+    0%,100% { box-shadow: 0 0 10px rgba(0,255,153,.2); }
+    50%      { box-shadow: 0 0 24px rgba(0,255,153,.5); }
+  }
+
+  /* ══════════════════════════════════════
+     PART B: 별 식별
+  ══════════════════════════════════════ */
+  #star-section { margin-bottom: 40px; }
+
+  .star-instruction {
+    background: rgba(255,212,77,.06);
+    border: 1px solid rgba(255,212,77,.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #ffd84d99;
+    margin-bottom: 16px;
+    letter-spacing: .5px;
+    line-height: 1.6;
+  }
+  .star-instruction span { color: var(--gold); font-weight: 700; }
+
+  #star-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 480px) { #star-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .star-card {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .2s, border-color .25s, box-shadow .25s;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+  .star-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.2); }
+  .star-card canvas { width: 80%; aspect-ratio: 1; margin: 0 auto 8px; display: block; }
+  .star-card .star-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .star-card .star-desc {
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .star-card.correct {
+    border-color: var(--success);
+    background: rgba(0,255,153,.08);
+    animation: star-pop .4s ease;
+  }
+  .star-card.wrong {
+    border-color: var(--danger);
+    background: rgba(255,68,102,.08);
+    animation: shake .35s ease;
+  }
+  .star-card .result-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 16px;
+  }
+
+  @keyframes star-pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25%     { transform: translateX(-6px); }
+    75%     { transform: translateX(6px); }
+  }
+
+  /* ── 남은 시도 ── */
+  .attempts-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+    justify-content: center;
+  }
+  .attempt-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+    transition: background .3s, box-shadow .3s;
+  }
+  .attempt-dot.used { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+  /* ══════════════════════════════════════
+     보상 / 완료 패널
+  ══════════════════════════════════════ */
+  #reward-panel {
+    display: none;
+    background: linear-gradient(135deg, #0d1f40, #06112b);
+    border: 1px solid var(--neon);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0,229,255,.15);
+    animation: reward-appear .6s ease;
+  }
+  @keyframes reward-appear {
+    from { opacity:0; transform: translateY(20px) scale(.96); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+  #reward-panel h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px,3.5vw,22px);
+    color: var(--gold);
+    text-shadow: 0 0 16px var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  #reward-panel p { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 20px; }
+  .item-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,216,77,.08);
+    border: 1px solid rgba(255,216,77,.3);
+    border-radius: 10px;
+    padding: 14px 22px;
+    margin-bottom: 24px;
+  }
+  .item-icon { font-size: 32px; }
+  .item-text { text-align: left; }
+  .item-text strong { display: block; font-family:'Orbitron',monospace; font-size:12px; color:var(--gold); letter-spacing:1px; }
+  .item-text span { font-size: 11px; color: var(--dim); }
+
+  .btn-next {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--neon), var(--neon2));
+    color: #000;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 14px 36px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 20px rgba(0,229,255,.3);
+  }
+  .btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0,229,255,.5);
+  }
+
+  /* ── 토스트 ── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--panel);
+    border: 1px solid var(--neon);
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--neon);
+    transition: transform .3s ease;
+    z-index: 100;
+    white-space: nowrap;
+    box-shadow: 0 0 20px rgba(0,229,255,.2);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div id="app">
+
+  <header>
+    <div class="stage-label">▶ Stage 01 / 03</div>
+    <h1>🗺️ 우주 지도 완성 &amp; 연료 탐색</h1>
+    <p>흩어진 지도를 복원하고, 에너지원이 될 별을 찾아라</p>
+  </header>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-item">
+      <span class="hud-label">Score</span>
+      <span class="hud-value gold" id="hud-score">0</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">퍼즐 진행</span>
+      <span class="hud-value" id="hud-puzzle">0 / 4</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">별 식별</span>
+      <span class="hud-value success" id="hud-star">대기중</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">아이템</span>
+      <span class="hud-value gold" id="hud-item">—</span>
+    </div>
+  </div>
+
+  <!-- 미션 카드 -->
+  <div class="mission-card">
+    <strong>📡 MISSION 01</strong><br>
+    ① 흩어진 우주 지도 조각 4개를 올바른 위치에 배치하라.<br>
+    ② 4가지 별 중 <strong style="color:var(--danger)">폭발한 별(초신성)</strong>을 정확히 식별하여 터치하라.<br>
+    두 임무를 모두 완료하면 뱀구멍 소환 아이템 <strong>★ 별 조각</strong>을 획득한다.
+  </div>
+
+  <!-- ─── PART A: 퍼즐 ─── -->
+  <section id="puzzle-section">
+    <div class="section-title">PART A — 우주 지도 복원</div>
+    <div class="puzzle-wrapper">
+      <!-- 드롭 영역 -->
+      <div class="canvas-box">
+        <label>▼ 여기에 조각을 놓으세요</label>
+        <div id="drop-area"></div>
+        <div id="puzzle-complete">✦ 지도 복원 완료 ✦</div>
+      </div>
+      <!-- 트레이 -->
+      <div class="pieces-tray">
+        <label>▼ 지도 조각 (드래그)</label>
+        <div id="pieces-grid"></div>
+        <p style="font-size:11px;color:var(--dim);margin-top:10px;text-align:center;">
+          조각을 드래그하거나 터치하여 지도에 배치하세요
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PART B: 별 식별 ─── -->
+  <section id="star-section">
+    <div class="section-title">PART B — 연료 별 식별</div>
+    <div class="star-instruction">
+      아래 4가지 별 중 <span>폭발한 별 (초신성, Supernova)</span>을 찾아 터치하세요.<br>
+      폭발한 별만이 뱀구멍을 열 에너지를 품고 있습니다. 틀리면 시도 횟수가 줄어듭니다.
+    </div>
+    <div id="star-grid"></div>
+    <div class="attempts-row" id="attempts-row"></div>
+  </section>
+
+  <!-- ─── 보상 패널 ─── -->
+  <div id="reward-panel">
+    <h2>🌟 임무 완료 — 아이템 획득!</h2>
+    <p>우주 지도가 복원되었고 에너지원 확보에 성공했습니다.<br>
+       뱀구멍(Wormhole)을 열 준비가 완료되었습니다.</p>
+    <div class="item-box">
+      <span class="item-icon">✨</span>
+      <div class="item-text">
+        <strong>별 조각 (Star Fragment)</strong>
+        <span>뱀구멍 생성 에너지 충전 완료 · +300 점</span>
+      </div>
+    </div>
+    <br>
+    <button class="btn-next" onclick="goLevel2()">2단계로 진행 →</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- 토스트 -->
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════
+   STARFIELD
+════════════════════════════════════════ */
+(function(){
+  const c = document.getElementById('starfield');
+  const ctx = c.getContext('2d');
+  let stars = [];
+  function resize(){
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+  }
+  function initStars(){
+    stars = [];
+    for(let i=0;i<220;i++){
+      stars.push({
+        x: Math.random()*c.width,
+        y: Math.random()*c.height,
+        r: Math.random()*1.5+.3,
+        alpha: Math.random()*.8+.2,
+        speed: Math.random()*.3+.05,
+        twinkle: Math.random()*Math.PI*2
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    const t = Date.now()*.001;
+    stars.forEach(s=>{
+      s.twinkle += s.speed*.04;
+      const a = s.alpha*(0.6+0.4*Math.sin(s.twinkle));
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(200,222,255,${a})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();initStars();});
+  resize(); initStars(); draw();
+})();
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const STATE = {
+  score: 0,
+  puzzleFilled: 0,
+  puzzleDone: false,
+  starDone: false,
+  attempts: 3,
+  dragPieceId: null,
+  touchPieceEl: null
+};
+const TOTAL_PIECES = 4;
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function addScore(n){
+  STATE.score += n;
+  document.getElementById('hud-score').textContent = STATE.score;
+}
+function showToast(msg, color='var(--neon)'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = color;
+  t.style.color = color;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function checkAllDone(){
+  if(STATE.puzzleDone && STATE.starDone){
+    addScore(300);
+    document.getElementById('hud-item').textContent = '★ 별 조각';
+    document.getElementById('reward-panel').style.display = 'block';
+    document.getElementById('reward-panel').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+/* ════════════════════════════════════════
+   PART A — PUZZLE
+════════════════════════════════════════ */
+// 지도를 캔버스로 그린 뒤 4등분
+const MAP_SIZE = 280; // 내부 해상도
+
+// 지도 이미지를 캔버스로 생성
+function createMapCanvas(){
+  const c = document.createElement('canvas');
+  c.width = c.height = MAP_SIZE;
+  const ctx = c.getContext('2d');
+
+  // 배경
+  ctx.fillStyle='#020918'; ctx.fillRect(0,0,MAP_SIZE,MAP_SIZE);
+
+  // 은하수 느낌 그라디언트
+  const grd = ctx.createRadialGradient(140,140,20,140,140,130);
+  grd.addColorStop(0,'rgba(0,229,255,.12)');
+  grd.addColorStop(1,'rgba(123,47,255,.04)');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,MAP_SIZE,MAP_SIZE);
+
+  // 별자리 선
+  ctx.strokeStyle='rgba(0,229,255,.25)';
+  ctx.lineWidth=1;
+  const nodes=[
+    [60,60],[180,40],[220,120],[200,200],
+    [120,230],[50,180],[100,130],[160,130]
+  ];
+  const edges=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[5,6],[6,7],[7,2],[6,1]];
+  edges.forEach(([a,b])=>{
+    ctx.beginPath();
+    ctx.moveTo(nodes[a][0],nodes[a][1]);
+    ctx.lineTo(nodes[b][0],nodes[b][1]);
+    ctx.stroke();
+  });
+  // 별자리 점
+  nodes.forEach(([x,y],i)=>{
+    ctx.beginPath();
+    ctx.arc(x,y,i===0?5:3,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,229,255,.9)';
+    ctx.fill();
+  });
+
+  // 행성들
+  const planets=[
+    {x:80,y:180,r:12,c:'#4466ff'},
+    {x:200,y:70,r:8,c:'#ff8833'},
+    {x:230,y:180,r:14,c:'#33cc88'},
+    {x:110,y:60,r:6,c:'#cc44ff'},
+  ];
+  planets.forEach(p=>{
+    const g2=ctx.createRadialGradient(p.x-p.r*.3,p.y-p.r*.3,p.r*.1,p.x,p.y,p.r);
+    g2.addColorStop(0,'#ffffff');
+    g2.addColorStop(.3,p.c);
+    g2.addColorStop(1,'#000000');
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=g2;
+    ctx.fill();
+  });
+
+  // 워프 포인트 (지구 방향)
+  ctx.beginPath();
+  ctx.arc(140,140,16,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,216,77,.6)';
+  ctx.lineWidth=2;
+  ctx.setLineDash([4,3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font='bold 9px Orbitron, monospace';
+  ctx.fillStyle='rgba(255,216,77,.8)';
+  ctx.textAlign='center';
+  ctx.fillText('EARTH',140,172);
+
+  return c;
+}
+
+function initPuzzle(){
+  const mapCanvas = createMapCanvas();
+  const dropArea = document.getElementById('drop-area');
+  const piecesGrid = document.getElementById('pieces-grid');
+
+  const daW = dropArea.clientWidth || 260;
+  const daH = dropArea.clientHeight || 260;
+
+  // 4개 슬롯 정의
+  const slots = [
+    {id:0, x:0, y:0, w:.5, h:.5},
+    {id:1, x:.5,y:0, w:.5, h:.5},
+    {id:2, x:0, y:.5,w:.5, h:.5},
+    {id:3, x:.5,y:.5,w:.5, h:.5},
+  ];
+  const slotFilled = [false,false,false,false];
+
+  // 슬롯 DOM 생성
+  slots.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'slot';
+    el.dataset.slotId = s.id;
+    el.style.left   = (s.x*100)+'%';
+    el.style.top    = (s.y*100)+'%';
+    el.style.width  = (s.w*100)+'%';
+    el.style.height = (s.h*100)+'%';
+    dropArea.appendChild(el);
+  });
+
+  // 조각 생성 (섞인 순서)
+  const order = [2,0,3,1]; // 섞기
+  order.forEach(pieceId=>{
+    const s = slots[pieceId];
+    const pc = document.createElement('div');
+    pc.className = 'puzzle-piece';
+    pc.dataset.pieceId = pieceId;
+    pc.setAttribute('draggable','true');
+
+    // 조각 캔버스
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = MAP_SIZE/2;
+    const cx = cv.getContext('2d');
+    cx.drawImage(mapCanvas,
+      s.x*MAP_SIZE, s.y*MAP_SIZE, s.w*MAP_SIZE, s.h*MAP_SIZE,
+      0, 0, cv.width, cv.height
+    );
+    pc.appendChild(cv);
+
+    // 라벨
+    const lbl = document.createElement('div');
+    lbl.style.cssText='position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(0,229,255,.5);font-family:Orbitron,monospace;';
+    lbl.textContent='#'+(pieceId+1);
+    pc.appendChild(lbl);
+
+    piecesGrid.appendChild(pc);
+  });
+
+  /* ── 드래그 & 드롭 (PC) ── */
+  function handleDragStart(e){
+    STATE.dragPieceId = +e.currentTarget.dataset.pieceId;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+  }
+  function handleDragEnd(e){
+    e.currentTarget.classList.remove('dragging');
+  }
+  document.querySelectorAll('.puzzle-piece').forEach(p=>{
+    p.addEventListener('dragstart',handleDragStart);
+    p.addEventListener('dragend',handleDragEnd);
+  });
+
+  dropArea.addEventListener('dragover',e=>{
+    e.preventDefault();
+    dropArea.classList.add('drag-over');
+  });
+  dropArea.addEventListener('dragleave',()=>{
+    dropArea.classList.remove('drag-over');
+  });
+  dropArea.addEventListener('drop',e=>{
+    e.preventDefault();
+    dropArea.classList.remove('drag-over');
+    if(STATE.dragPieceId === null) return;
+
+    const rect = dropArea.getBoundingClientRect();
+    const rx = (e.clientX - rect.left) / rect.width;
+    const ry = (e.clientY - rect.top)  / rect.height;
+
+    // 어느 슬롯에 떨어졌나?
+    const target = slots.find(s=>
+      rx>=s.x && rx<s.x+s.w &&
+      ry>=s.y && ry<s.y+s.h
+    );
+    if(!target || slotFilled[target.id]) return;
+
+    if(target.id === STATE.dragPieceId){
+      placePiece(target.id, mapCanvas, slots, slotFilled);
+    } else {
+      showToast('⚠ 위치가 맞지 않습니다!', 'var(--danger)');
+      // 틀린 슬롯 빨간 강조
+      flashSlot(target.id, 'var(--danger)');
+    }
+  });
+
+  /* ── 터치 / 클릭 (모바일) ── */
+  let activePieceId = null;
+  document.querySelectorAll('.puzzle-piece').forEach(p=>{
+    p.addEventListener('click',()=>{
+      const pid = +p.dataset.pieceId;
+      if(activePieceId === pid){
+        activePieceId = null;
+        document.querySelectorAll('.puzzle-piece').forEach(q=>q.style.outline='');
+        showToast('조각 선택 해제', 'var(--dim)');
+      } else {
+        activePieceId = pid;
+        document.querySelectorAll('.puzzle-piece').forEach(q=>q.style.outline='');
+        p.style.outline = '2px solid var(--neon)';
+        showToast('슬롯을 클릭하여 배치하세요!', 'var(--neon)');
+      }
+    });
+  });
+
+  dropArea.addEventListener('click',e=>{
+    if(activePieceId === null) return;
+    const rect = dropArea.getBoundingClientRect();
+    const rx = (e.clientX - rect.left) / rect.width;
+    const ry = (e.clientY - rect.top)  / rect.height;
+    const target = slots.find(s=>
+      rx>=s.x && rx<s.x+s.w &&
+      ry>=s.y && ry<s.y+s.h
+    );
+    if(!target || slotFilled[target.id]) return;
+    if(target.id === activePieceId){
+      placePiece(target.id, mapCanvas, slots, slotFilled);
+      // 해당 조각 제거
+      const el = document.querySelector(`.puzzle-piece[data-piece-id="${activePieceId}"]`);
+      if(el) el.remove();
+      activePieceId = null;
+    } else {
+      showToast('⚠ 위치가 맞지 않습니다!', 'var(--danger)');
+      flashSlot(target.id, 'var(--danger)');
+    }
+  });
+
+  function flashSlot(sid, color){
+    const el = dropArea.querySelector(`.slot[data-slot-id="${sid}"]`);
+    if(!el) return;
+    el.style.borderColor = color;
+    el.style.background = `${color}18`;
+    setTimeout(()=>{el.style.borderColor='';el.style.background='';},600);
+  }
+
+  function placePiece(pid, mapCanvas, slots, slotFilled){
+    if(slotFilled[pid]) return;
+    slotFilled[pid] = true;
+
+    const s = slots[pid];
+    // 캔버스를 슬롯에 그리기
+    const img = document.createElement('canvas');
+    img.width = img.height = MAP_SIZE/2;
+    img.getContext('2d').drawImage(mapCanvas,
+      s.x*MAP_SIZE, s.y*MAP_SIZE, s.w*MAP_SIZE, s.h*MAP_SIZE,
+      0,0,img.width,img.height
+    );
+    img.style.cssText=`position:absolute;left:${s.x*100}%;top:${s.y*100}%;width:${s.w*100}%;height:${s.h*100}%;border-radius:4px;animation:pieceIn .35s ease;`;
+    dropArea.appendChild(img);
+
+    // 슬롯 표시
+    const slotEl = dropArea.querySelector(`.slot[data-slot-id="${pid}"]`);
+    if(slotEl) slotEl.classList.add('filled');
+
+    // 원본 조각 제거
+    const pieceEl = document.querySelector(`.puzzle-piece[data-piece-id="${pid}"]`);
+    if(pieceEl) pieceEl.style.display='none';
+
+    STATE.puzzleFilled++;
+    document.getElementById('hud-puzzle').textContent = `${STATE.puzzleFilled} / ${TOTAL_PIECES}`;
+    addScore(50);
+    showToast(`+50점! 조각 ${STATE.puzzleFilled}/${TOTAL_PIECES} 배치 완료`, 'var(--success)');
+
+    if(STATE.puzzleFilled >= TOTAL_PIECES){
+      STATE.puzzleDone = true;
+      document.getElementById('puzzle-complete').style.display = 'block';
+      showToast('✦ 우주 지도 완성! ✦', 'var(--gold)');
+      checkAllDone();
+    }
+  }
+}
+
+// pieceIn 애니메이션 주입
+const styleEl = document.createElement('style');
+styleEl.textContent=`
+@keyframes pieceIn{
+  from{opacity:0;transform:scale(.8);}
+  to  {opacity:1;transform:scale(1);}
+}`;
+document.head.appendChild(styleEl);
+
+/* ════════════════════════════════════════
+   PART B — 별 식별
+════════════════════════════════════════ */
+const STAR_TYPES = [
+  {
+    id:'baby',
+    name:'아기 별',
+    desc:'갓 태어난 원시성',
+    correct:false,
+    draw(ctx,sz){
+      // 작고 붉은 별
+      const g=ctx.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz/2);
+      g.addColorStop(0,'#fff8e0');
+      g.addColorStop(.3,'#ff9944');
+      g.addColorStop(1,'rgba(255,80,0,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(sz/2,sz/2,sz/2,0,Math.PI*2);ctx.fill();
+      // 주변 가스 구름
+      ctx.fillStyle='rgba(255,120,0,.1)';
+      for(let i=0;i<6;i++){
+        const a=i/6*Math.PI*2;
+        const r=sz*.35+Math.random()*sz*.1;
+        ctx.beginPath();
+        ctx.arc(sz/2+Math.cos(a)*r,sz/2+Math.sin(a)*r,sz*.08,0,Math.PI*2);
+        ctx.fill();
+      }
+    }
+  },
+  {
+    id:'bright',
+    name:'밝은 별',
+    desc:'주계열성 (성숙)',
+    correct:false,
+    draw(ctx,sz){
+      const g=ctx.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz/2);
+      g.addColorStop(0,'#ffffff');
+      g.addColorStop(.2,'#fffde0');
+      g.addColorStop(.6,'#ffdd44');
+      g.addColorStop(1,'rgba(255,200,0,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(sz/2,sz/2,sz/2,0,Math.PI*2);ctx.fill();
+      // 빛줄기
+      ctx.strokeStyle='rgba(255,255,200,.5)';
+      ctx.lineWidth=1;
+      for(let i=0;i<8;i++){
+        const a=i/8*Math.PI*2;
+        ctx.beginPath();
+        ctx.moveTo(sz/2+Math.cos(a)*sz*.28, sz/2+Math.sin(a)*sz*.28);
+        ctx.lineTo(sz/2+Math.cos(a)*sz*.48, sz/2+Math.sin(a)*sz*.48);
+        ctx.stroke();
+      }
+    }
+  },
+  {
+    id:'dark',
+    name:'어두운 별',
+    desc:'백색왜성 / 적색거성',
+    correct:false,
+    draw(ctx,sz){
+      const g=ctx.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz/2);
+      g.addColorStop(0,'#ffddcc');
+      g.addColorStop(.4,'#cc4422');
+      g.addColorStop(.85,'#440000');
+      g.addColorStop(1,'rgba(30,0,0,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(sz/2,sz/2,sz*.45,0,Math.PI*2);ctx.fill();
+      // 어두운 대기층
+      ctx.strokeStyle='rgba(100,20,0,.3)';
+      ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(sz/2,sz/2,sz*.45,0,Math.PI*2);ctx.stroke();
+    }
+  },
+  {
+    id:'supernova',
+    name:'폭발한 별',
+    desc:'초신성 — 에너지원!',
+    correct:true,
+    draw(ctx,sz){
+      // 폭발 충격파
+      const shockColors=['rgba(0,229,255,.15)','rgba(255,100,0,.12)','rgba(255,200,0,.1)'];
+      [.95,.75,.55].forEach((r,i)=>{
+        ctx.beginPath();
+        ctx.arc(sz/2,sz/2,sz*r,0,Math.PI*2);
+        ctx.fillStyle=shockColors[i];
+        ctx.fill();
+      });
+      // 불규칙 파편 스파이크
+      ctx.fillStyle='rgba(255,160,0,.8)';
+      const spikes=12;
+      ctx.save();
+      ctx.translate(sz/2,sz/2);
+      ctx.beginPath();
+      for(let i=0;i<spikes*2;i++){
+        const a=(i/(spikes*2))*Math.PI*2;
+        const r=i%2===0 ? sz*.38 : sz*.18;
+        if(i===0) ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);
+        else ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      }
+      ctx.closePath();
+      ctx.fillStyle='rgba(255,220,60,.9)';
+      ctx.fill();
+      ctx.restore();
+      // 중심 코어
+      const cg=ctx.createRadialGradient(sz/2,sz/2,0,sz/2,sz/2,sz*.14);
+      cg.addColorStop(0,'#ffffff');
+      cg.addColorStop(.4,'#00e5ff');
+      cg.addColorStop(1,'rgba(0,229,255,0)');
+      ctx.fillStyle=cg;
+      ctx.beginPath();ctx.arc(sz/2,sz/2,sz*.14,0,Math.PI*2);ctx.fill();
+    }
+  }
+];
+
+function initStarGame(){
+  const grid = document.getElementById('star-grid');
+  const attRow = document.getElementById('attempts-row');
+
+  // 시도 도트
+  function renderAttempts(){
+    attRow.innerHTML='';
+    for(let i=0;i<3;i++){
+      const d=document.createElement('div');
+      d.className='attempt-dot'+(i>=STATE.attempts?' used':'');
+      attRow.appendChild(d);
+    }
+  }
+  renderAttempts();
+
+  // 카드 렌더
+  const shuffled=[...STAR_TYPES].sort(()=>Math.random()-.5);
+  shuffled.forEach(star=>{
+    const card=document.createElement('div');
+    card.className='star-card';
+    card.dataset.starId=star.id;
+
+    const cv=document.createElement('canvas');
+    const SZ=80;
+    cv.width=cv.height=SZ;
+    star.draw(cv.getContext('2d'),SZ);
+    card.appendChild(cv);
+
+    const nm=document.createElement('div');nm.className='star-name';nm.textContent=star.name;
+    const ds=document.createElement('div');ds.className='star-desc';ds.textContent=star.desc;
+    card.appendChild(nm);card.appendChild(ds);
+
+    card.addEventListener('click',()=>handleStarClick(card,star,renderAttempts));
+    grid.appendChild(card);
+  });
+}
+
+function handleStarClick(card, star, renderAttempts){
+  if(STATE.starDone) return;
+  // 이미 클릭된 카드면 무시
+  if(card.classList.contains('correct')||card.classList.contains('wrong')) return;
+
+  if(star.correct){
+    card.classList.add('correct');
+    const badge=document.createElement('div');badge.className='result-badge';badge.textContent='✓';
+    card.appendChild(badge);
+    STATE.starDone=true;
+    document.getElementById('hud-star').textContent='✔ 완료';
+    addScore(150);
+    showToast('🌟 정답! +150점 획득!', 'var(--success)');
+    checkAllDone();
+  } else {
+    STATE.attempts--;
+    card.classList.add('wrong');
+    const badge=document.createElement('div');badge.className='result-badge';badge.textContent='✗';
+    card.appendChild(badge);
+    renderAttempts();
+    showToast(`틀렸습니다! 남은 시도: ${STATE.attempts}회`, 'var(--danger)');
+    if(STATE.attempts<=0){
+      showToast('💀 시도 횟수 초과! 페이지를 새로고침하세요.', 'var(--danger)');
+      document.querySelectorAll('.star-card').forEach(c=>{
+        if(c.dataset.starId==='supernova') c.style.border='2px solid var(--success)';
+      });
+    }
+  }
+}
+
+/* ════════════════════════════════════════
+   NEXT LEVEL
+════════════════════════════════════════ */
+function goLevel2(){
+  // 2단계로 이동 (level2.html 준비되면 연결)
+  alert('2단계 (뱀구멍 활성화) 준비 중입니다!\n곧 연결될 예정입니다. 🚀');
+  // window.location.href = 'level2.html';
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+window.addEventListener('load',()=>{
+  // 드롭 영역 크기 확정 후 퍼즐 초기화
+  setTimeout(initPuzzle, 100);
+  initStarGame();
+});
+</script>
+</body>
+</html>
+
