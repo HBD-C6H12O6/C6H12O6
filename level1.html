@@ -607,132 +607,67 @@ function checkAllDone(){
 const MAP_SIZE = 280; // 내부 해상도
 
 // 지도 이미지를 캔버스로 생성
-function createMapCanvas(){
-  const c = document.createElement('canvas');
-  c.width = c.height = MAP_SIZE;
-  const ctx = c.getContext('2d');
+// 기존 createMapCanvas() 함수 내부를 완전히 비우고 아래처럼 이미지 객체를 사용하도록 수정하거나,
+// initPuzzle() 함수 시작 부분을 아래와 같이 수정합니다.
 
-  // 배경
-  ctx.fillStyle='#020918'; ctx.fillRect(0,0,MAP_SIZE,MAP_SIZE);
-
-  // 은하수 느낌 그라디언트
-  const grd = ctx.createRadialGradient(140,140,20,140,140,130);
-  grd.addColorStop(0,'rgba(0,229,255,.12)');
-  grd.addColorStop(1,'rgba(123,47,255,.04)');
-  ctx.fillStyle=grd; ctx.fillRect(0,0,MAP_SIZE,MAP_SIZE);
-
-  // 별자리 선
-  ctx.strokeStyle='rgba(0,229,255,.25)';
-  ctx.lineWidth=1;
-  const nodes=[
-    [60,60],[180,40],[220,120],[200,200],
-    [120,230],[50,180],[100,130],[160,130]
-  ];
-  const edges=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[5,6],[6,7],[7,2],[6,1]];
-  edges.forEach(([a,b])=>{
-    ctx.beginPath();
-    ctx.moveTo(nodes[a][0],nodes[a][1]);
-    ctx.lineTo(nodes[b][0],nodes[b][1]);
-    ctx.stroke();
-  });
-  // 별자리 점
-  nodes.forEach(([x,y],i)=>{
-    ctx.beginPath();
-    ctx.arc(x,y,i===0?5:3,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,229,255,.9)';
-    ctx.fill();
-  });
-
-  // 행성들
-  const planets=[
-    {x:80,y:180,r:12,c:'#4466ff'},
-    {x:200,y:70,r:8,c:'#ff8833'},
-    {x:230,y:180,r:14,c:'#33cc88'},
-    {x:110,y:60,r:6,c:'#cc44ff'},
-  ];
-  planets.forEach(p=>{
-    const g2=ctx.createRadialGradient(p.x-p.r*.3,p.y-p.r*.3,p.r*.1,p.x,p.y,p.r);
-    g2.addColorStop(0,'#ffffff');
-    g2.addColorStop(.3,p.c);
-    g2.addColorStop(1,'#000000');
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=g2;
-    ctx.fill();
-  });
-
-  // 워프 포인트 (지구 방향)
-  ctx.beginPath();
-  ctx.arc(140,140,16,0,Math.PI*2);
-  ctx.strokeStyle='rgba(255,216,77,.6)';
-  ctx.lineWidth=2;
-  ctx.setLineDash([4,3]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.font='bold 9px Orbitron, monospace';
-  ctx.fillStyle='rgba(255,216,77,.8)';
-  ctx.textAlign='center';
-  ctx.fillText('EARTH',140,172);
-
-  return c;
-}
-
-function initPuzzle(){
-  const mapCanvas = createMapCanvas();
+function initPuzzle() {
   const dropArea = document.getElementById('drop-area');
   const piecesGrid = document.getElementById('pieces-grid');
+  
+  // 1. 내가 만든 지도 이미지 객체 생성
+  const mapImg = new Image();
+  mapImg.src = '제작한_지도_이미지_파일명.png'; // 예: 'map.png'
+  
+  mapImg.onload = function() {
+    // 이미지 로드가 완료된 후 퍼즐 조각을 생성하도록 기존 로직을 이 안으로 감싸줍니다.
+    const daW = dropArea.clientWidth || 260;
+    const daH = dropArea.clientHeight || 260;
 
-  const daW = dropArea.clientWidth || 260;
-  const daH = dropArea.clientHeight || 260;
+    const slots = [
+      {id:0, x:0, y:0, w:.5, h:.5},
+      {id:1, x:.5,y:0, w:.5, h:.5},
+      {id:2, x:0, y:.5,w:.5, h:.5},
+      {id:3, x:.5,y:.5,w:.5, h:.5},
+    ];
+    const slotFilled = [false,false,false,false];
 
-  // 4개 슬롯 정의
-  const slots = [
-    {id:0, x:0, y:0, w:.5, h:.5},
-    {id:1, x:.5,y:0, w:.5, h:.5},
-    {id:2, x:0, y:.5,w:.5, h:.5},
-    {id:3, x:.5,y:.5,w:.5, h:.5},
-  ];
-  const slotFilled = [false,false,false,false];
+    // 슬롯 DOM 생성
+    slots.forEach(s=>{
+      const el = document.createElement('div');
+      el.className = 'slot';
+      el.dataset.slotId = s.id;
+      el.style.left   = (s.x*100)+'%';
+      el.style.top    = (s.y*100)+'%';
+      el.style.width  = (s.w*100)+'%';
+      el.style.height = (s.h*100)+'%';
+      dropArea.appendChild(el);
+    });
 
-  // 슬롯 DOM 생성
-  slots.forEach(s=>{
-    const el = document.createElement('div');
-    el.className = 'slot';
-    el.dataset.slotId = s.id;
-    el.style.left   = (s.x*100)+'%';
-    el.style.top    = (s.y*100)+'%';
-    el.style.width  = (s.w*100)+'%';
-    el.style.height = (s.h*100)+'%';
-    dropArea.appendChild(el);
-  });
+    // 조각 생성 (mapCanvas 대신 mapImg에서 잘라오도록 변경)
+    const order = [2,0,3,1];
+    order.forEach(pieceId=>{
+      const s = slots[pieceId];
+      const pc = document.createElement('div');
+      pc.className = 'puzzle-piece';
+      pc.dataset.pieceId = pieceId;
+      pc.setAttribute('draggable','true');
 
-  // 조각 생성 (섞인 순서)
-  const order = [2,0,3,1]; // 섞기
-  order.forEach(pieceId=>{
-    const s = slots[pieceId];
-    const pc = document.createElement('div');
-    pc.className = 'puzzle-piece';
-    pc.dataset.pieceId = pieceId;
-    pc.setAttribute('draggable','true');
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = MAP_SIZE/2;
+      const cx = cv.getContext('2d');
+      
+      // [수정] 가상 캔버스 대신 원본 이미지(mapImg)에서 슬롯 크기만큼 잘라그립니다.
+      cx.drawImage(mapImg,
+        s.x * mapImg.width, s.y * mapImg.height, s.w * mapImg.width, s.h * mapImg.height,
+        0, 0, cv.width, cv.height
+      );
+      pc.appendChild(cv);
 
-    // 조각 캔버스
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = MAP_SIZE/2;
-    const cx = cv.getContext('2d');
-    cx.drawImage(mapCanvas,
-      s.x*MAP_SIZE, s.y*MAP_SIZE, s.w*MAP_SIZE, s.h*MAP_SIZE,
-      0, 0, cv.width, cv.height
-    );
-    pc.appendChild(cv);
-
-    // 라벨
-    const lbl = document.createElement('div');
-    lbl.style.cssText='position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(0,229,255,.5);font-family:Orbitron,monospace;';
-    lbl.textContent='#'+(pieceId+1);
-    pc.appendChild(lbl);
-
-    piecesGrid.appendChild(pc);
-  });
+      // ... 하단 handleDragStart 및 placePiece 함수 내부에서도 
+      // mapCanvas 호출 부분을 mapImg로 변경해주어야 합니다.
+    };
+  };
+}
 
   /* ── 드래그 & 드롭 (PC) ── */
   function handleDragStart(e){
