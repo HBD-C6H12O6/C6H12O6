@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project Earth – 1단계: 우주 지도 완성</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght=400;700;900&family=Noto+Sans+KR:wght=300;400;700&display=swap');
 
   :root {
     --bg:       #020510;
@@ -140,8 +140,8 @@
   }
 
   /* ══════════════════════════════════════
-     PART A: 우주 지도 퍼즐
-  ══════════════════════════════════════ */
+      PART A: 우주 지도 퍼즐
+   ══════════════════════════════════════ */
   #puzzle-section { margin-bottom: 40px; }
 
   .puzzle-wrapper {
@@ -218,6 +218,7 @@
     position: relative;
     overflow: hidden;
     background: var(--deep);
+    touch-action: none; /* 모바일 드래그 시 스크롤 방지 보완 */
   }
   .puzzle-piece:hover {
     transform: scale(1.04);
@@ -248,8 +249,8 @@
   }
 
   /* ══════════════════════════════════════
-     PART B: 별 식별
-  ══════════════════════════════════════ */
+      PART B: 별 식별
+   ══════════════════════════════════════ */
   #star-section { margin-bottom: 40px; }
 
   .star-instruction {
@@ -344,8 +345,8 @@
   .attempt-dot.used { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
 
   /* ══════════════════════════════════════
-     보상 / 완료 패널
-  ══════════════════════════════════════ */
+      보상 / 완료 패널
+   ══════════════════════════════════════ */
   #reward-panel {
     display: none;
     background: linear-gradient(135deg, #0d1f40, #06112b);
@@ -436,7 +437,7 @@
   <header>
     <div class="stage-label">▶ Stage 01 / 03</div>
     <h1>🗺️ 우주 지도 완성 &amp; 연료 탐색</h1>
-    <p>흩어진 지도를 복원하고, 에너지원이 될 별을 찾아라</p>
+    <p>찢어진 지도를 이어 붙이고, 뱀구멍을 만들 수 있는 별을 찾아야 해!</p>
   </header>
 
   <div class="hud">
@@ -460,9 +461,9 @@
 
   <div class="mission-card">
     <strong>📡 MISSION 01</strong><br>
-    ① 흩어진 우주 지도 조각 4개를 올바른 위치에 배치하라.<br>
-    ② 4가지 별 중 <strong style="color:var(--danger)">폭발한 별(초신성)</strong>을 정확히 식별하여 터치하라.<br>
-    두 임무를 모두 완료하면 뱀구멍 소환 아이템 <strong>★ 별 조각</strong>을 획득한다.
+    ① 지도 조각을 알맞은 위치에 배치해야 해.<br>
+    ② 4가지 별 중 <strong style="color:var(--danger)">뱀구멍을 만들 수 있는 별</strong>을 찾아야 해.<br>
+    두 임무를 모두 완료하면 <strong>별 조각</strong>을 얻을 수 있어.
   </div>
 
   <section id="puzzle-section">
@@ -486,8 +487,8 @@
   <section id="star-section">
     <div class="section-title">PART B — 연료 별 식별</div>
     <div class="star-instruction">
-      A 4가지 별 중 <span>폭발한 별 (초신성, Supernova)</span>을 찾아 터치하세요.<br>
-      폭발한 별만이 뱀구멍을 열 에너지를 품고 있습니다. 틀리면 시도 횟수가 줄어듭니다.
+      A 4가지 별 중 <span>뱀구멍을 만들 수 있는 별</span>을 찾아 터치하세요.<br>
+      맞다, 뱀구멍은 오래된 별이 죽거나 큰 폭발이 있을 때 생기는 현상이야. 틀리면 지구에 갈 수 없을지도 몰라!
     </div>
     <div id="star-grid"></div>
     <div class="attempts-row" id="attempts-row"></div>
@@ -495,20 +496,21 @@
 
   <div id="reward-panel">
     <h2>🌟 임무 완료 — 아이템 획득!</h2>
-    <p>우주 지도가 복원되었고 에너지원 확보에 성공했습니다.<br>
-       뱀구멍(Wormhole)을 열 준비가 완료되었습니다.</p>
+    <p>재료를 다 모았어.<br>
+       이제 자전거만 타면 돼!</p>
     <div class="item-box">
       <span class="item-icon">✨</span>
       <div class="item-text">
         <strong>별 조각 (Star Fragment)</strong>
-        <span>뱀구멍 생성 에너지 충전 완료 · +300 점</span>
+        <span>+300 점</span>
       </div>
     </div>
     <br>
-    <button class="btn-next" onclick="goLevel2()">2단계로 진행 →</button>
+    <button class="btn-next" onclick="goLevel2()">자전거 타러 가기 →</button>
   </div>
 
-</div><div id="toast"></div>
+</div>
+<div id="toast"></div>
 
 <script>
 /* ════════════════════════════════════════
@@ -552,7 +554,7 @@
 })();
 
 /* ════════════════════════════════════════
-   STATE & DATA GLOBALS (PART A 전역 변수 선언)
+   STATE & DATA GLOBALS
 ════════════════════════════════════════ */
 const STATE = {
   score: 0,
@@ -572,7 +574,8 @@ const slots = [
   {id:3, x:.5,y:.5,w:.5, h:.5}
 ];
 const slotFilled = [false, false, false, false];
-let mapImgObj = null; // 원본 지도 이미지 저장 공간
+let mapImgObj = null; 
+let activePieceId = null;
 
 /* ════════════════════════════════════════
    HELPERS
@@ -606,10 +609,9 @@ function initPuzzle() {
   const piecesGrid = document.getElementById('pieces-grid');
   
   mapImgObj = new Image();
-  mapImgObj.src = 'mapImg.png'; // 내가 업로드한 지도 이미지 파일명
+  mapImgObj.src = 'mapImg.png'; 
   
   mapImgObj.onload = function() {
-    // 1. 슬롯 DOM 배치
     slots.forEach(s=>{
       const el = document.createElement('div');
       el.className = 'slot';
@@ -621,7 +623,6 @@ function initPuzzle() {
       dropArea.appendChild(el);
     });
 
-    // 2. 랜덤 순서 조각 생성 및 트레이 안착
     const order = [2, 0, 3, 1];
     order.forEach(pieceId=>{
       const s = slots[pieceId];
@@ -634,18 +635,14 @@ function initPuzzle() {
       cv.width = cv.height = MAP_SIZE/2;
       const cx = cv.getContext('2d');
       
-      // 원본 맵 이미지에서 각 구역 크기만큼 잘라오기
       cx.drawImage(mapImgObj,
         s.x * mapImgObj.width, s.y * mapImgObj.height, s.w * mapImgObj.width, s.h * mapImgObj.height,
         0, 0, cv.width, cv.height
       );
       pc.appendChild(cv);
 
-      // PC 드래그 이벤트 연결
       pc.addEventListener('dragstart', handleDragStart);
       pc.addEventListener('dragend', handleDragEnd);
-      
-      // 모바일 클릭/터치 이벤트 연결
       pc.addEventListener('click', handlePieceClick);
 
       piecesGrid.appendChild(pc);
@@ -653,7 +650,6 @@ function initPuzzle() {
   };
 }
 
-/* ── 드래그 & 드롭 이벤트 핸들러 (PC) ── */
 function handleDragStart(e){
   STATE.dragPieceId = +e.currentTarget.dataset.pieceId;
   e.currentTarget.classList.add('dragging');
@@ -662,8 +658,10 @@ function handleDragEnd(e){
   e.currentTarget.classList.remove('dragging');
 }
 
-// 드롭 영역 바인딩
 window.addEventListener('DOMContentLoaded', () => {
+  initPuzzle();  
+  initStarGame(); 
+
   const dropArea = document.getElementById('drop-area');
   
   dropArea.addEventListener('dragover', e => {
@@ -694,7 +692,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ── 터치 / 클릭 핸들러 (모바일용 드롭 타겟) ── */
   dropArea.addEventListener('click', e => {
     if(activePieceId === null) return;
     const rect = dropArea.getBoundingClientRect();
@@ -714,8 +711,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* ── 모바일 터치 클릭 함수 ── */
-let activePieceId = null;
 function handlePieceClick(e){
   const p = e.currentTarget;
   const pid = +p.dataset.pieceId;
@@ -747,7 +742,6 @@ function placePiece(pid){
   const dropArea = document.getElementById('drop-area');
   const s = slots[pid];
   
-  // 새 가상 캔버스를 만들어 슬롯 영역에 복제 부착
   const img = document.createElement('canvas');
   img.width = img.height = MAP_SIZE/2;
   img.getContext('2d').drawImage(mapImgObj,
@@ -776,7 +770,6 @@ function placePiece(pid){
   }
 }
 
-// 애니메이션 주입
 const styleEl = document.createElement('style');
 styleEl.textContent=`
 @keyframes pieceIn{
@@ -789,10 +782,10 @@ document.head.appendChild(styleEl);
    PART B — 별 식별 DATA & LOGIC
 ════════════════════════════════════════ */
 const STAR_TYPES = [
-  { id: 'baby', name: '아기 별', desc: '갓 태어난 원시성', correct: false, imgSrc: 'star1.png' },
-  { id: 'bright', name: '밝은 별', desc: '주계열성 (성숙)', correct: false, imgSrc: 'star2.png' },
-  { id: 'dark', name: '어두운 별', desc: '백색왜성 / 적색거성', correct: false, imgSrc: 'star3.png' },
-  { id: 'supernova', name: '폭발한 별', desc: '초신성 — 에너지원!', correct: true, imgSrc: 'supernova.png' }
+  { id: 'baby', name: '글쟁이 별', correct: false, imgSrc: 'star1.png' },
+  { id: 'bright', name: '뻥쟁이 별', correct: false, imgSrc: 'star2.png' }, 
+  { id: 'dark', name: '흉내쟁이 별', correct: false, imgSrc: 'star3.png' },
+  { id: 'supernova', name: '???', correct: true, imgSrc: 'supernova.png' }
 ];
 
 function initStarGame(){
@@ -801,7 +794,7 @@ function initStarGame(){
 
   function renderAttempts(){
     attRow.innerHTML='';
-    for(let i=0;i<3;i++){
+    for(let i=0; i<3; i++){
       const d=document.createElement('div');
       d.className='attempt-dot'+(i>=STATE.attempts?' used':'');
       attRow.appendChild(d);
@@ -809,7 +802,6 @@ function initStarGame(){
   }
   renderAttempts();
 
-  // 중복 없이 깔끔하게 한 번만 카드 렌더링하도록 교정 완료
   const shuffled=[...STAR_TYPES].sort(()=>Math.random()-.5);
   shuffled.forEach(star=>{
     const card=document.createElement('div');
@@ -834,8 +826,7 @@ function initStarGame(){
     card.appendChild(cv);
 
     const nm=document.createElement('div'); nm.className='star-name'; nm.textContent=star.name;
-    const ds=document.createElement('div'); ds.className='star-desc'; ds.textContent=star.desc;
-    card.appendChild(nm); card.appendChild(ds);
+    card.appendChild(nm); 
 
     card.addEventListener('click',()=>handleStarClick(card,star,renderAttempts));
     grid.appendChild(card);
@@ -864,4 +855,17 @@ function handleStarClick(card, star, renderAttempts){
     showToast(`틀렸습니다! 남은 시도: ${STATE.attempts}회`, 'var(--danger)');
     if(STATE.attempts<=0){
       showToast('💀 시도 횟수 초과! 페이지를 새로고침하세요.', 'var(--danger)');
-      document.
+      document.querySelectorAll('.star-card').forEach(c=>{
+        if(c.dataset.starId==='supernova') c.style.border='2px solid var(--success)';
+      });
+    }
+  }
+}
+
+function goLevel2(){
+  alert('2단계 (뱀구멍 활성화) 페이지로 이동합니다! 🚀');
+  window.location.href = 'level2.html';
+}
+</script>
+</body>
+</html>
