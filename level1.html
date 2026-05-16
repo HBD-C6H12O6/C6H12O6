@@ -812,113 +812,37 @@ document.head.appendChild(styleEl);
 /* ════════════════════════════════════════
    PART B — 별 식별
 ════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   PART B — 별 식별 (내가 만든 이미지 매핑)
+════════════════════════════════════════ */
 const STAR_TYPES = [
   {
-    id:'baby',
-    name:'아기 별',
-    desc:'갓 태어난 원시성',
-    correct:false,
-    draw(ctx,sz){
-      // 작고 붉은 별
-      const g=ctx.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz/2);
-      g.addColorStop(0,'#fff8e0');
-      g.addColorStop(.3,'#ff9944');
-      g.addColorStop(1,'rgba(255,80,0,0)');
-      ctx.fillStyle=g;
-      ctx.beginPath();ctx.arc(sz/2,sz/2,sz/2,0,Math.PI*2);ctx.fill();
-      // 주변 가스 구름
-      ctx.fillStyle='rgba(255,120,0,.1)';
-      for(let i=0;i<6;i++){
-        const a=i/6*Math.PI*2;
-        const r=sz*.35+Math.random()*sz*.1;
-        ctx.beginPath();
-        ctx.arc(sz/2+Math.cos(a)*r,sz/2+Math.sin(a)*r,sz*.08,0,Math.PI*2);
-        ctx.fill();
-      }
-    }
+    id: 'baby',
+    name: '아기 별',
+    desc: '갓 태어난 원시성',
+    correct: false,
+    imgSrc: 'star1.png' // 제작하신 이미지 파일명
   },
   {
-    id:'bright',
-    name:'밝은 별',
-    desc:'주계열성 (성숙)',
-    correct:false,
-    draw(ctx,sz){
-      const g=ctx.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz/2);
-      g.addColorStop(0,'#ffffff');
-      g.addColorStop(.2,'#fffde0');
-      g.addColorStop(.6,'#ffdd44');
-      g.addColorStop(1,'rgba(255,200,0,0)');
-      ctx.fillStyle=g;
-      ctx.beginPath();ctx.arc(sz/2,sz/2,sz/2,0,Math.PI*2);ctx.fill();
-      // 빛줄기
-      ctx.strokeStyle='rgba(255,255,200,.5)';
-      ctx.lineWidth=1;
-      for(let i=0;i<8;i++){
-        const a=i/8*Math.PI*2;
-        ctx.beginPath();
-        ctx.moveTo(sz/2+Math.cos(a)*sz*.28, sz/2+Math.sin(a)*sz*.28);
-        ctx.lineTo(sz/2+Math.cos(a)*sz*.48, sz/2+Math.sin(a)*sz*.48);
-        ctx.stroke();
-      }
-    }
+    id: 'bright',
+    name: '밝은 별',
+    desc: '주계열성 (성숙)',
+    correct: false,
+    imgSrc: 'star2.png'
   },
   {
-    id:'dark',
-    name:'어두운 별',
-    desc:'백색왜성 / 적색거성',
-    correct:false,
-    draw(ctx,sz){
-      const g=ctx.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz/2);
-      g.addColorStop(0,'#ffddcc');
-      g.addColorStop(.4,'#cc4422');
-      g.addColorStop(.85,'#440000');
-      g.addColorStop(1,'rgba(30,0,0,0)');
-      ctx.fillStyle=g;
-      ctx.beginPath();ctx.arc(sz/2,sz/2,sz*.45,0,Math.PI*2);ctx.fill();
-      // 어두운 대기층
-      ctx.strokeStyle='rgba(100,20,0,.3)';
-      ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(sz/2,sz/2,sz*.45,0,Math.PI*2);ctx.stroke();
-    }
+    id: 'dark',
+    name: '어두운 별',
+    desc: '백색왜성 / 적색거성',
+    correct: false,
+    imgSrc: 'star3.png'
   },
   {
-    id:'supernova',
-    name:'폭발한 별',
-    desc:'초신성 — 에너지원!',
-    correct:true,
-    draw(ctx,sz){
-      // 폭발 충격파
-      const shockColors=['rgba(0,229,255,.15)','rgba(255,100,0,.12)','rgba(255,200,0,.1)'];
-      [.95,.75,.55].forEach((r,i)=>{
-        ctx.beginPath();
-        ctx.arc(sz/2,sz/2,sz*r,0,Math.PI*2);
-        ctx.fillStyle=shockColors[i];
-        ctx.fill();
-      });
-      // 불규칙 파편 스파이크
-      ctx.fillStyle='rgba(255,160,0,.8)';
-      const spikes=12;
-      ctx.save();
-      ctx.translate(sz/2,sz/2);
-      ctx.beginPath();
-      for(let i=0;i<spikes*2;i++){
-        const a=(i/(spikes*2))*Math.PI*2;
-        const r=i%2===0 ? sz*.38 : sz*.18;
-        if(i===0) ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);
-        else ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
-      }
-      ctx.closePath();
-      ctx.fillStyle='rgba(255,220,60,.9)';
-      ctx.fill();
-      ctx.restore();
-      // 중심 코어
-      const cg=ctx.createRadialGradient(sz/2,sz/2,0,sz/2,sz/2,sz*.14);
-      cg.addColorStop(0,'#ffffff');
-      cg.addColorStop(.4,'#00e5ff');
-      cg.addColorStop(1,'rgba(0,229,255,0)');
-      ctx.fillStyle=cg;
-      ctx.beginPath();ctx.arc(sz/2,sz/2,sz*.14,0,Math.PI*2);ctx.fill();
-    }
+    id: 'supernova',
+    name: '폭발한 별',
+    desc: '초신성 — 에너지원!',
+    correct: true,
+    imgSrc: 'supernova.png'
   }
 ];
 
@@ -944,11 +868,40 @@ function initStarGame(){
     card.className='star-card';
     card.dataset.starId=star.id;
 
+   // 카드 렌더
+  const shuffled=[...STAR_TYPES].sort(()=>Math.random()-.5);
+  shuffled.forEach(star=>{
+    const card=document.createElement('div');
+    card.className='star-card';
+    card.dataset.starId=star.id;
+
+    // [수정] 기존 캔버스에 직접 그리던 방식 대신 이미지 객체를 생성하여 드로잉
     const cv=document.createElement('canvas');
     const SZ=80;
     cv.width=cv.height=SZ;
-    star.draw(cv.getContext('2d'),SZ);
+    const ctx = cv.getContext('2d');
+
+    const img = new Image();
+    img.src = star.imgSrc;
+    img.onload = function() {
+      // 이미지가 로드되면 캔버스 크기에 맞춰 꽉 차게 그려줍니다.
+      ctx.drawImage(img, 0, 0, SZ, SZ);
+    };
+    // 만약 로드가 실패하거나 이미지가 없을 때를 대비해 기본 원형 백업을 남겨둡니다.
+    img.onerror = function() {
+      ctx.fillStyle = star.correct ? 'var(--neon)' : 'var(--dim)';
+      ctx.beginPath(); ctx.arc(SZ/2, SZ/2, SZ*.3, 0, Math.PI*2); ctx.fill();
+    };
+
     card.appendChild(cv);
+
+    const nm=document.createElement('div');nm.className='star-name';nm.textContent=star.name;
+    const ds=document.createElement('div');ds.className='star-desc';ds.textContent=star.desc;
+    card.appendChild(nm);card.appendChild(ds);
+
+    card.addEventListener('click',()=>handleStarClick(card,star,renderAttempts));
+    grid.appendChild(card);
+  });
 
     const nm=document.createElement('div');nm.className='star-name';nm.textContent=star.name;
     const ds=document.createElement('div');ds.className='star-desc';ds.textContent=star.desc;
