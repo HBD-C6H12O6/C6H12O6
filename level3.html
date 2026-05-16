@@ -931,15 +931,19 @@ function saveResult(){
 }
 
 function shareResult(){
-  const name=document.getElementById('nickname-input').value.trim()||'익명 대원';
-  const txt=`🚀 Project Earth 클리어!\n👾 ${name} · 점수: ${G.score}점\n⏱️ 생존: ${GAME_DURATION}초 · 회피: ${G.dodged}회\n#ProjectEarth #지구귀환작전`;
-  if(navigator.share){
-    navigator.share({title:'Project Earth 결과', text:txt}).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(txt).then(()=>{
-      showToast('결과가 클립보드에 복사되었습니다!','var(--success)');
-    });
-  }
+  const name = document.getElementById('nickname-input').value.trim() || '익명 대원';
+  const finalScore = G.score; // 최종 계산된 점수 반영
+  const survived = GAME_DURATION - G.timeLeft;
+  
+  // 트위터에 본문으로 들어갈 텍스트 (줄바꿈 문자는 %0A로 인코딩되어 적용됩니다)
+  const txt = `C₆H₁₂O₆: Project Earth✨ 클리어!\n👾 ${name} · 점수: ${finalScore}점\n⏱️ 생존: ${survived}초 · 회피: ${G.dodged}회`;
+  
+  // 트위터 공유 Intent URL 생성
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`;
+  
+  // 새 창으로 트위터 공유 창 열기
+  window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+  showToast('트위터 공유 창이 열렸습니다!', 'var(--success)');
 }
 
 /* ════════════════════════════════════════
