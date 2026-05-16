@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Project Earth – 3단계: 뱀구멍 탈출</title>
+<title>Project Earth – 3단계: 지구로 같이 가자!</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
@@ -229,7 +229,6 @@
 </head>
 <body>
 
-<!-- HUD -->
 <div id="hud-overlay">
   <div class="hud-block">
     <span class="hud-lbl">SCORE</span>
@@ -257,10 +256,8 @@
   </div>
 </div>
 
-<!-- 게임 캔버스 -->
 <canvas id="game-canvas"></canvas>
 
-<!-- 모바일 컨트롤 -->
 <div id="mobile-controls">
   <div class="ctrl-group">
     <div class="ctrl-btn" id="btn-left">◀</div>
@@ -274,37 +271,32 @@
   </div>
 </div>
 
-<!-- 시작 화면 -->
 <div class="overlay" id="start-screen">
-  <div class="big-title">🚀 뱀구멍 탈출</div>
+  <div class="big-title">🚀 지구로 같이 가자!</div>
   <p class="sub">
-    뱀구멍을 통과해 지구로 귀환하라!<br>
-    <span>30초</span> 동안 쏟아지는 운석과 소행성을 피해라.<br>
-    HP가 0이 되기 전에 살아남아야 한다.<br><br>
+    뱀구멍을 통과해서 지구로 갈 거야.<br>
+    <span>30초</span> 동안 쏟아지는 운석과 소행성을 피해야 해.<br>
     <span>PC:</span> WASD / 방향키 이동 &nbsp;|&nbsp; <span>모바일:</span> 버튼 터치
   </p>
-  <button class="btn btn-primary" onclick="startCountdown()">▶ 탈출 개시</button>
+  <button class="btn btn-primary" onclick="startCountdown()">▶ 시작!</button>
 </div>
 
-<!-- 카운트다운 -->
 <div class="overlay hidden" id="countdown-screen">
   <div id="countdown-display">3</div>
 </div>
 
-<!-- 실패 화면 -->
 <div class="overlay hidden" id="fail-screen">
   <div class="fail-title">💥 격추됨</div>
-  <p>운석에 충돌하여 탈출에 실패했습니다.<br>다시 도전하여 지구로 돌아가라!</p>
+  <p>아야... 너무 많이 부딪혔나 봐.<br>잘 치료하고, 다시 도전하자!</p>
   <div class="btn-row">
     <button class="btn btn-danger" onclick="retryGame()">다시 시도</button>
   </div>
 </div>
 
-<!-- 클리어 / 엔딩 -->
 <div class="overlay hidden" id="ending-screen">
   <canvas id="ending-canvas"></canvas>
   <div class="end-title" id="end-title" style="color:var(--gold)">🌍 지구 귀환 성공!</div>
-  <p class="end-sub">뱀구멍을 돌파하고 마침내 지구에 도착했다.<br>왕자와 함께한 우주 귀환 작전, 임무 완료!</p>
+  <p class="end-sub">뱀구멍을 통과해서 마침내 지구에 도착했다.<br>왕자와 함께한 우주 귀환 작전, 임무 완료!</p>
   <div class="score-board" id="score-board"></div>
   <div class="nickname-row">
     <input id="nickname-input" type="text" maxlength="12" placeholder="닉네임 입력..." />
@@ -334,19 +326,32 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 /* ════════════════════════════════════════
+   GRAPHIC ASSETS (이미지 로드)
+════════════════════════════════════════ */
+const ASSETS = {
+  ship: new Image(),
+  meteors: [new Image(), new Image(), new Image()]
+};
+
+ASSETS.ship.src = 'ship_back.png';
+ASSETS.meteors[0].src = 'meteor1.png';
+ASSETS.meteors[1].src = 'meteor2.png';
+ASSETS.meteors[2].src = 'meteor3.png';
+
+/* ════════════════════════════════════════
    CONSTANTS
 ════════════════════════════════════════ */
 const GAME_DURATION  = 30;    // 초
 const PLAYER_SPEED   = 4.5;
-const PLAYER_W       = 36;
-const PLAYER_H       = 44;
+const PLAYER_W       = 40;    
+const PLAYER_H       = 50;
 const MAX_HP         = 3;
-const INVINCIBLE_MS  = 1400;  // 피격 후 무적 시간
+const INVINCIBLE_MS  = 1400;  
 
 /* ════════════════════════════════════════
    STATE
 ════════════════════════════════════════ */
-let G = {};  // 게임 상태
+let G = {};  
 
 function resetGame(){
   G = {
@@ -359,51 +364,41 @@ function resetGame(){
     lastTime:   0,
     timerAcc:   0,
     spawnAcc:   0,
-    spawnRate:  1400,   // ms
-    phase:      0,      // 시간에 따라 증가
-    // 플레이어
+    spawnRate:  1400,   
+    phase:      0,      
+    // 기존 코어 코드의 자동 우주 배경 생성기용 배열들
+    bgStars:   [],
+    warpLines: [],
+    // 플레이어 위치 및 물리
     px: 0, py: 0,
     pvx:0, pvy:0,
-    invincible: 0,      // 무적 잔여 ms
-    // 객체 배열
+    invincible: 0,      
+    // 엔티티 관리
     asteroids: [],
     particles: [],
-    stars:     [],
-    warpLines: [],
-    // 점수
     dodged:    0,
-    // 키 상태
     keys: { left:false, right:false, up:false, down:false },
   };
   G.px = CW/2;
   G.py = CH * 0.72;
-  initStars();
-  initWarpLines();
+  initProceduralStars();
 }
 
-/* ════════════════════════════════════════
-   BACKGROUND
-════════════════════════════════════════ */
-function initStars(){
-  G.stars = [];
-  for(let i=0;i<130;i++){
-    G.stars.push({
-      x: Math.random()*CW,
-      y: Math.random()*CH,
-      r: Math.random()*1.3+.2,
-      spd: Math.random()*1.2+.3,
-      alpha: Math.random()*.7+.2,
+// 실시간 코드 제어 우주 배경 초기화 (기존 코드 그대로 작동)
+function initProceduralStars(){
+  G.bgStars = [];
+  for(let i=0; i<80; i++){
+    G.bgStars.push({
+      x: Math.random()*CW, y: Math.random()*CH,
+      r: Math.random()*1.2+0.4, spd: Math.random()*0.8+0.2,
+      alpha: Math.random()*0.5+0.3
     });
   }
-}
-
-function initWarpLines(){
   G.warpLines = [];
   for(let i=0;i<22;i++){
     G.warpLines.push({
-      x: Math.random()*CW,
-      len: Math.random()*80+30,
-      spd: Math.random()*6+4,
+      x: Math.random()*CW, y: Math.random()*CH,
+      len: Math.random()*80+30, spd: Math.random()*6+4,
       alpha: Math.random()*.4+.1,
       hue: Math.random()<.5 ? 190 : 270,
     });
@@ -412,33 +407,39 @@ function initWarpLines(){
 
 function updateBackground(dt){
   const speedMult = 1 + G.phase*0.4;
-  // 별 낙하
-  G.stars.forEach(s=>{
-    s.y += s.spd * speedMult * dt * 60/1000;
-    if(s.y > CH+4){ s.y=-4; s.x=Math.random()*CW; }
+  const dtF = dt * 60 / 1000;
+
+  // 우주 공간 무한 스크롤 및 워프 라인 실시간 갱신
+  G.bgStars.forEach(s => {
+    s.y += s.spd * speedMult * dtF;
+    if(s.y > CH) { s.y = 0; s.x = Math.random()*CW; }
   });
-  // 워프 라인
+
   G.warpLines.forEach(w=>{
-    w.y = (w.y||0) + w.spd * speedMult * dt * 60/1000;
+    w.y += w.spd * speedMult * dtF;
     if(w.y > CH+w.len){ w.y=-w.len; w.x=Math.random()*CW; }
   });
 }
 
 function drawBackground(){
-  // 배경 그라디언트
-  const bg = ctx.createLinearGradient(0,0,0,CH);
-  bg.addColorStop(0,'#010208');
-  bg.addColorStop(.5,'#030820');
-  bg.addColorStop(1,'#060318');
-  ctx.fillStyle=bg;
+  // 딥 스페이스 배경 베이스 그래픽 생성
+  ctx.fillStyle = '#020512';
   ctx.fillRect(0,0,CW,CH);
 
-  // 워프 라인
+  // 1. 은하수 성단 별빛 렌더링
+  G.bgStars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(200, 225, 255, ${s.alpha})`;
+    ctx.fill();
+  });
+
+  // 2. 워프 이펙트 초고속 광선 라인 렌더링
   G.warpLines.forEach(w=>{
     ctx.beginPath();
-    ctx.moveTo(w.x, (w.y||0));
-    ctx.lineTo(w.x, (w.y||0)+w.len);
-    const lg=ctx.createLinearGradient(w.x,(w.y||0),w.x,(w.y||0)+w.len);
+    ctx.moveTo(w.x, w.y);
+    ctx.lineTo(w.x, w.y+w.len);
+    const lg=ctx.createLinearGradient(w.x, w.y, w.x, w.y+w.len);
     lg.addColorStop(0,'rgba(0,0,0,0)');
     lg.addColorStop(.5,`hsla(${w.hue},100%,70%,${w.alpha})`);
     lg.addColorStop(1,'rgba(0,0,0,0)');
@@ -446,18 +447,10 @@ function drawBackground(){
     ctx.lineWidth=1.5;
     ctx.stroke();
   });
-
-  // 별
-  G.stars.forEach(s=>{
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(200,225,255,${s.alpha})`;
-    ctx.fill();
-  });
 }
 
 /* ════════════════════════════════════════
-   PLAYER DRAWING
+   PLAYER DRAWING (우주선 뒷모습 적용)
 ════════════════════════════════════════ */
 function drawPlayer(){
   const x=G.px, y=G.py;
@@ -466,71 +459,35 @@ function drawPlayer(){
   ctx.save();
   ctx.translate(x,y);
 
-  // 무적 깜빡임
   if(G.invincible>0 && Math.floor(Date.now()/80)%2===0){
     ctx.globalAlpha=0.35;
   }
 
-  // 엔진 후광
-  const eGlow=ctx.createRadialGradient(0,PLAYER_H*.4,0,0,PLAYER_H*.4,PLAYER_W*.9);
-  eGlow.addColorStop(0,'rgba(0,229,255,.55)');
-  eGlow.addColorStop(1,'rgba(0,229,255,0)');
-  ctx.fillStyle=eGlow;
-  ctx.beginPath();
-  ctx.ellipse(0,PLAYER_H*.38,PLAYER_W*.85,PLAYER_H*.38,0,0,Math.PI*2);
-  ctx.fill();
-
-  // 엔진 불꽃 (흔들림)
+  // 부스터 엔진 불꽃 이펙트
   const flicker=Math.sin(t*18)*.15+.85;
   ctx.save();
-  ctx.translate(0, PLAYER_H*.28);
-  // 좌측 노즐
-  drawFlame(ctx,-PLAYER_W*.28, 0, 7, 18*flicker, '#00e5ff', '#7b2fff');
-  // 우측 노즐
-  drawFlame(ctx, PLAYER_W*.28, 0, 7, 18*flicker, '#00e5ff', '#7b2fff');
-  // 중앙 메인 엔진
-  drawFlame(ctx,0,6, 10, 26*flicker, '#ffffff', '#00e5ff');
+  ctx.translate(0, PLAYER_H * 0.4);
+  drawFlame(ctx, -PLAYER_W * 0.2, 0, 6, 16 * flicker, '#00e5ff', '#7b2fff');
+  drawFlame(ctx,  PLAYER_W * 0.2, 0, 6, 16 * flicker, '#00e5ff', '#7b2fff');
+  drawFlame(ctx, 0, 4, 8, 24 * flicker, '#ffffff', '#00e5ff');
   ctx.restore();
 
-  // 선체 (삼각형 우주선)
-  ctx.beginPath();
-  ctx.moveTo(0, -PLAYER_H/2);
-  ctx.lineTo(-PLAYER_W/2,  PLAYER_H/2);
-  ctx.lineTo(-PLAYER_W*.12, PLAYER_H*.18);
-  ctx.lineTo(0,  PLAYER_H*.3);
-  ctx.lineTo( PLAYER_W*.12, PLAYER_H*.18);
-  ctx.lineTo( PLAYER_W/2,  PLAYER_H/2);
-  ctx.closePath();
-  const shipGrad=ctx.createLinearGradient(-PLAYER_W/2,-PLAYER_H/2,PLAYER_W/2,PLAYER_H/2);
-  shipGrad.addColorStop(0,'#1a3a6a');
-  shipGrad.addColorStop(.5,'#2a5a9a');
-  shipGrad.addColorStop(1,'#0e2040');
-  ctx.fillStyle=shipGrad;
-  ctx.fill();
-  ctx.strokeStyle='rgba(0,229,255,.7)';
-  ctx.lineWidth=1.5;
-  ctx.stroke();
-
-  // 콕핏 (앞 창문)
-  ctx.beginPath();
-  ctx.ellipse(0,-PLAYER_H*.12,PLAYER_W*.14,PLAYER_H*.13,0,0,Math.PI*2);
-  const cpGrad=ctx.createRadialGradient(-PLAYER_W*.04,-PLAYER_H*.15,0,0,-PLAYER_H*.12,PLAYER_W*.14);
-  cpGrad.addColorStop(0,'rgba(200,240,255,.9)');
-  cpGrad.addColorStop(1,'rgba(0,100,200,.4)');
-  ctx.fillStyle=cpGrad;
-  ctx.fill();
-
-  // 날개 엣지 라인
-  ctx.strokeStyle='rgba(0,229,255,.35)';
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(-PLAYER_W*.35,PLAYER_H*.1);
-  ctx.lineTo(-PLAYER_W*.5, PLAYER_H*.5);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo( PLAYER_W*.35,PLAYER_H*.1);
-  ctx.lineTo( PLAYER_W*.5, PLAYER_H*.5);
-  ctx.stroke();
+  // 플레이어 우주선 뒷모습 이미지 매핑
+  if (ASSETS.ship.complete && ASSETS.ship.width > 0) {
+    ctx.drawImage(ASSETS.ship, -PLAYER_W/2, -PLAYER_H/2, PLAYER_W, PLAYER_H);
+  } else {
+    // 대체 벡터 파일
+    ctx.beginPath();
+    ctx.moveTo(0, -PLAYER_H/2);
+    ctx.lineTo(-PLAYER_W/2,  PLAYER_H/2);
+    ctx.lineTo(0,  PLAYER_H*.2);
+    ctx.lineTo( PLAYER_W/2,  PLAYER_H/2);
+    ctx.closePath();
+    ctx.fillStyle = '#2a5a9a';
+    ctx.fill();
+    ctx.strokeStyle = '#00e5ff';
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
@@ -548,37 +505,26 @@ function drawFlame(ctx, ox, oy, rx, ry, c1, c2){
 }
 
 /* ════════════════════════════════════════
-   ASTEROIDS
+   ASTEROIDS (3종 이미지 랜덤 매핑)
 ════════════════════════════════════════ */
-const ASTEROID_TYPES = [
-  { name:'rock',    minR:14, maxR:28, color:'#8a7060', hColor:'#b09070', speed:1.2 },
-  { name:'metal',   minR:10, maxR:20, color:'#607090', hColor:'#90b0d0', speed:1.8 },
-  { name:'fire',    minR:12, maxR:22, color:'#c04020', hColor:'#ff8040', speed:2.2 },
-  { name:'ice',     minR:10, maxR:18, color:'#60a0c0', hColor:'#aaddff', speed:1.5 },
-];
-
 function spawnAsteroid(){
-  const type = ASTEROID_TYPES[Math.floor(Math.random()*ASTEROID_TYPES.length)];
-  const r    = type.minR + Math.random()*(type.maxR-type.minR);
+  const imgIdx = Math.floor(Math.random() * 3);
+  const mImg = ASSETS.meteors[imgIdx];
+
+  const r = 16 + Math.random() * 12;
   const phaseBonus = 1 + G.phase * 0.35;
-  const spd  = (type.speed + Math.random()*.8) * phaseBonus;
+  const spd  = (1.5 + Math.random() * 1.2) * phaseBonus;
   const x    = r + Math.random()*(CW - r*2);
-  // 불규칙 모양용 꼭짓점
-  const verts=[];
-  const vc = 7+Math.floor(Math.random()*5);
-  for(let i=0;i<vc;i++){
-    const a=(i/vc)*Math.PI*2;
-    const rr=r*(0.7+Math.random()*.55);
-    verts.push([Math.cos(a)*rr, Math.sin(a)*rr]);
-  }
+
   G.asteroids.push({
-    x, y:-r-10,
+    x, y:-r-20,
     vx: (Math.random()-.5)*1.4*phaseBonus,
     vy: spd,
-    r, type, verts,
-    rot:0, rotSpd:(Math.random()-.5)*.06,
-    hp:1,
-    glowAlpha:0,
+    r,
+    img: mImg,
+    rot: Math.random() * Math.PI, 
+    rotSpd: (Math.random()-.5)*.05,
+    glowAlpha: 0,
   });
 }
 
@@ -600,63 +546,31 @@ function drawAsteroids(){
     ctx.translate(a.x,a.y);
     ctx.rotate(a.rot);
 
-    // 충격 글로우
     if(a.glowAlpha>0){
       ctx.beginPath();
-      ctx.arc(0,0,a.r*1.6,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,150,0,${a.glowAlpha})`;
+      ctx.arc(0,0,a.r*1.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,100,0,${a.glowAlpha})`;
       ctx.fill();
     }
 
-    // 불규칙 다각형
-    ctx.beginPath();
-    a.verts.forEach(([vx,vy],i)=>i===0?ctx.moveTo(vx,vy):ctx.lineTo(vx,vy));
-    ctx.closePath();
-
-    const ag=ctx.createRadialGradient(-a.r*.3,-a.r*.3,0,0,0,a.r);
-    ag.addColorStop(0,lightenColor(a.type.hColor,.4));
-    ag.addColorStop(.5,a.type.color);
-    ag.addColorStop(1,darkenColor(a.type.color,.5));
-    ctx.fillStyle=ag;
-    ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.12)';
-    ctx.lineWidth=1;
-    ctx.stroke();
-
-    // 크레이터 느낌
-    ctx.beginPath();
-    ctx.arc(-a.r*.2,-a.r*.15,a.r*.2,0,Math.PI*2);
-    ctx.strokeStyle='rgba(0,0,0,.25)';
-    ctx.lineWidth=1.5;
-    ctx.stroke();
-
-    // 불 타입 특수효과
-    if(a.type.name==='fire'){
-      const fg2=ctx.createRadialGradient(0,0,a.r*.3,0,0,a.r*1.1);
-      fg2.addColorStop(0,'rgba(255,120,0,.0)');
-      fg2.addColorStop(.6,'rgba(255,80,0,.15)');
-      fg2.addColorStop(1,'rgba(255,40,0,.0)');
-      ctx.fillStyle=fg2;
-      ctx.beginPath();ctx.arc(0,0,a.r*1.1,0,Math.PI*2);ctx.fill();
+    // 운석 에셋 그래픽 출력
+    if (a.img.complete && a.img.width > 0) {
+      ctx.drawImage(a.img, -a.r, -a.r, a.r*2, a.r*2);
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, a.r, 0, Math.PI*2);
+      ctx.fillStyle = '#6a5548';
+      ctx.fill();
     }
 
     ctx.restore();
   });
 }
 
-function lightenColor(hex,amt){
-  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
-  return `rgb(${Math.min(255,r+amt*255|0)},${Math.min(255,g+amt*255|0)},${Math.min(255,b+amt*255|0)})`;
-}
-function darkenColor(hex,amt){
-  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
-  return `rgb(${Math.max(0,r-amt*255|0)},${Math.max(0,g-amt*255|0)},${Math.max(0,b-amt*255|0)})`;
-}
-
 /* ════════════════════════════════════════
-   PARTICLES
+   PARTICLES & EXPLOSION
 ════════════════════════════════════════ */
-function spawnExplosion(x,y,color='#ff8833',count=18){
+function spawnExplosion(x,y,color='#ff7722',count=18){
   for(let i=0;i<count;i++){
     const a=Math.random()*Math.PI*2;
     const spd=Math.random()*4+1.5;
@@ -711,17 +625,16 @@ function drawParticles(){
 }
 
 /* ════════════════════════════════════════
-   COLLISION
+   COLLISION (충돌 판정)
 ════════════════════════════════════════ */
 function checkCollisions(){
   if(G.invincible>0) return;
-  const hitR = PLAYER_W*.35;
+  const hitR = PLAYER_W*.38;
   G.asteroids = G.asteroids.filter(a=>{
     const dx=G.px-a.x, dy=G.py-a.y;
     const dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist < hitR+a.r*.7){
-      // 충돌!
-      spawnExplosion(a.x,a.y, a.type.color==='#c04020'?'#ff6030':a.type.color, 22);
+    if(dist < hitR+a.r*.75){
+      spawnExplosion(a.x,a.y, '#ff5500', 22);
       spawnHitFlash(G.px,G.py);
       G.hp--;
       G.invincible=INVINCIBLE_MS;
@@ -766,23 +679,20 @@ function gameLoop(now){
   const dt = Math.min(now - G.lastTime, 50);
   G.lastTime=now;
 
-  // 타이머
   G.timerAcc+=dt;
+  if(G.timerAcc+=dt){} // 빈 구문 보정 안정성 유지용
   if(G.timerAcc>=1000){
     G.timerAcc-=1000;
     G.timeLeft--;
     updateTimerUI();
-    // 페이즈 증가
     G.phase = Math.floor((GAME_DURATION-G.timeLeft)/8);
     if(G.timeLeft<=0){
       endGame(true);
       return;
     }
-    // 스폰 속도 증가
     G.spawnRate = Math.max(350, 1400 - G.phase*200);
   }
 
-  // 스폰
   G.spawnAcc+=dt;
   const spawnCount = G.phase>=3 ? 2 : 1;
   if(G.spawnAcc>=G.spawnRate){
@@ -798,7 +708,6 @@ function gameLoop(now){
   updateParticles(dt);
   checkCollisions();
 
-  // 그리기
   drawBackground();
   drawAsteroids();
   drawParticles();
@@ -808,7 +717,6 @@ function gameLoop(now){
   raf=requestAnimationFrame(gameLoop);
 }
 
-/* 화면 하단 경고선 */
 function drawWarning(){
   if(G.phase<2) return;
   const alpha=(Math.sin(Date.now()*.006)+1)*.5*.4;
@@ -819,7 +727,7 @@ function drawWarning(){
 /* ════════════════════════════════════════
    UI UPDATES
 ════════════════════════════════════════ */
-const CIRC = 138.2; // 2π×22
+const CIRC = 138.2; 
 
 function updateTimerUI(){
   const pct=G.timeLeft/GAME_DURATION;
@@ -870,7 +778,6 @@ function startGame(){
   updateTimerUI();
   updateHPUI();
   document.getElementById('hud-score').textContent='0';
-  // 모바일 컨트롤
   if('ontouchstart' in window){
     document.getElementById('mobile-controls').style.display='flex';
   }
@@ -884,7 +791,6 @@ function endGame(cleared){
   cancelAnimationFrame(raf);
 
   if(cleared){
-    // 엔딩
     setTimeout(()=>{
       drawEndingCanvas();
       buildScoreBoard();
@@ -911,7 +817,6 @@ function drawEndingCanvas(){
   const EH=Math.round(ESZ*.56);
   ec.width=ESZ; ec.height=EH;
 
-  // 배경 (우주→지구)
   const bg=eCtx.createLinearGradient(0,0,0,EH);
   bg.addColorStop(0,'#010410');
   bg.addColorStop(.55,'#0a1a50');
@@ -919,7 +824,6 @@ function drawEndingCanvas(){
   bg.addColorStop(1,'#0a2040');
   eCtx.fillStyle=bg; eCtx.fillRect(0,0,ESZ,EH);
 
-  // 별
   for(let i=0;i<60;i++){
     const sx=Math.random()*ESZ, sy=Math.random()*EH*.6;
     const sr=Math.random()*.8+.2;
@@ -927,7 +831,6 @@ function drawEndingCanvas(){
     eCtx.fillStyle=`rgba(200,225,255,${Math.random()*.6+.3})`; eCtx.fill();
   }
 
-  // 지구
   const EX=ESZ*.72, EY=EH*.52, ER=EH*.35;
   const earthGrad=eCtx.createRadialGradient(EX-ER*.3,EY-ER*.3,ER*.1,EX,EY,ER);
   earthGrad.addColorStop(0,'#60c8ff');
@@ -937,7 +840,6 @@ function drawEndingCanvas(){
   eCtx.beginPath(); eCtx.arc(EX,EY,ER,0,Math.PI*2);
   eCtx.fillStyle=earthGrad; eCtx.fill();
 
-  // 대륙
   eCtx.fillStyle='rgba(40,160,60,.7)';
   [[EX-ER*.25,EY-ER*.2,ER*.32,ER*.22],
    [EX+ER*.05,EY+ER*.08,ER*.25,ER*.3],
@@ -946,7 +848,6 @@ function drawEndingCanvas(){
     eCtx.fill();
   });
 
-  // 대기층
   const atmGrad=eCtx.createRadialGradient(EX,EY,ER*.9,EX,EY,ER*1.15);
   atmGrad.addColorStop(0,'rgba(100,200,255,0)');
   atmGrad.addColorStop(.5,'rgba(100,200,255,.12)');
@@ -954,14 +855,12 @@ function drawEndingCanvas(){
   eCtx.beginPath(); eCtx.arc(EX,EY,ER*1.12,0,Math.PI*2);
   eCtx.fillStyle=atmGrad; eCtx.fill();
 
-  // 지구 광택
   eCtx.beginPath(); eCtx.ellipse(EX-ER*.3,EY-ER*.28,ER*.28,ER*.18,-0.4,0,Math.PI*2);
   const specGrad=eCtx.createRadialGradient(EX-ER*.32,EY-ER*.3,0,EX-ER*.28,EY-ER*.25,ER*.3);
   specGrad.addColorStop(0,'rgba(255,255,255,.35)');
   specGrad.addColorStop(1,'rgba(255,255,255,0)');
   eCtx.fillStyle=specGrad; eCtx.fill();
 
-  // 뱀구멍 잔상 (왼쪽)
   const whX=ESZ*.18, whY=EH*.38;
   for(let i=5;i>=1;i--){
     eCtx.beginPath();
@@ -972,29 +871,18 @@ function drawEndingCanvas(){
   eCtx.beginPath(); eCtx.arc(whX,whY,EH*.04,0,Math.PI*2);
   eCtx.fillStyle='rgba(255,255,255,.8)'; eCtx.fill();
 
-  // 우주선 (작게)
   eCtx.save();
   eCtx.translate(ESZ*.38,EH*.42);
   eCtx.scale(.7,.7);
-  const sw=22,sh=28;
-  // 엔진 글로우
-  const sg=eCtx.createRadialGradient(0,sh*.3,0,0,sh*.3,sw);
-  sg.addColorStop(0,'rgba(0,229,255,.5)'); sg.addColorStop(1,'rgba(0,229,255,0)');
-  eCtx.fillStyle=sg; eCtx.beginPath(); eCtx.ellipse(0,sh*.28,sw*.9,sh*.35,0,0,Math.PI*2); eCtx.fill();
-  // 선체
-  eCtx.beginPath();
-  eCtx.moveTo(0,-sh/2);
-  eCtx.lineTo(-sw/2,sh/2);
-  eCtx.lineTo(-sw*.1,sh*.15);
-  eCtx.lineTo(0,sh*.28);
-  eCtx.lineTo(sw*.1,sh*.15);
-  eCtx.lineTo(sw/2,sh/2);
-  eCtx.closePath();
-  eCtx.fillStyle='#2a5a9a'; eCtx.fill();
-  eCtx.strokeStyle='rgba(0,229,255,.8)'; eCtx.lineWidth=1.2; eCtx.stroke();
+  if (ASSETS.ship.complete && ASSETS.ship.width > 0) {
+    eCtx.drawImage(ASSETS.ship, -22/2, -28/2, 22, 28);
+  } else {
+    eCtx.beginPath();
+    eCtx.moveTo(0,-14); eCtx.lineTo(-11,14); eCtx.lineTo(11,14);
+    eCtx.closePath(); eCtx.fillStyle='#2a5a9a'; eCtx.fill();
+  }
   eCtx.restore();
 
-  // 텍스트
   eCtx.font=`bold ${Math.round(ESZ*.045)}px Orbitron, monospace`;
   eCtx.fillStyle='rgba(255,216,77,.9)';
   eCtx.textAlign='left';
@@ -1106,7 +994,6 @@ function showToast(msg,color='var(--neon)'){
 ════════════════════════════════════════ */
 window.addEventListener('load',()=>{
   resetGame();
-  // 시작 전 배경만 미리 그려두기
   drawBackground();
 });
 </script>
