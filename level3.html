@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Project Earth – 3단계: 뱀구멍 탈출</title>
+<title>Project Earth – 3단계: 지구로 같이 가자!</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
@@ -272,14 +272,13 @@
 </div>
 
 <div class="overlay" id="start-screen">
-  <div class="big-title">🚀 뱀구멍 탈출</div>
+  <div class="big-title">🚀 지구로 같이 가자! </div>
   <p class="sub">
-    뱀구멍을 통과해 지구로 귀환하라!<br>
-    <span>30초</span> 동안 쏟아지는 운석과 소행성을 피해라.<br>
-    HP가 0이 되기 전에 살아남아야 한다.<br><br>
+    뱀구멍을 통과서 지구로 갈 거야.<br>
+    <span>30초</span> 동안 쏟아지는 운석과 소행성을 피해야 해.<br>
     <span>PC:</span> WASD / 방향키 이동 &nbsp;|&nbsp; <span>모바일:</span> 버튼 터치
   </p>
-  <button class="btn btn-primary" onclick="startCountdown()">▶ 탈출 개시</button>
+  <button class="btn btn-primary" onclick="startCountdown()">▶시작!</button>
 </div>
 
 <div class="overlay hidden" id="countdown-screen">
@@ -288,7 +287,7 @@
 
 <div class="overlay hidden" id="fail-screen">
   <div class="fail-title">💥 격추됨</div>
-  <p>운석에 충돌하여 탈출에 실패했습니다.<br>다시 도전하여 지구로 돌아가라!</p>
+  <p>아야... 너무 많이 부딪혔나 봐.<br>잘 치료하고 다시 도전하자!</p>
   <div class="btn-row">
     <button class="btn btn-danger" onclick="retryGame()">다시 시도</button>
   </div>
@@ -891,7 +890,7 @@ function shareResult(){
   const finalScore = G.score; 
   const survived = GAME_DURATION - G.timeLeft;
   
-  const txt = `🚀 Project Earth 클리어!\n👾 ${name} · 점수: ${finalScore}점\n⏱️ 생존: ${survived}초 · 회피: ${G.dodged}회\n\n#ProjectEarth #지구귀환작전`;
+  const txt = `🚀 Project Earth 클리어!\n👾 ${name} · 점수: ${finalScore}점\n⏱️ 생존: ${survived}초 · 회피: ${G.dodged}회`;
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`;
   
   window.open(twitterUrl, '_blank', 'noopener,noreferrer');
