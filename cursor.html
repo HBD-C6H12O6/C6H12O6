@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C6H12O6 | Character Cursors</title>
+  <style>
+    @font-face {
+      font-family: 'RomanticGumi';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/GumiRomanceTTF.woff2') format('woff2');
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #e0d9ff;
+      color: #332475;
+      font-family: 'RomanticGumi', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .header-area {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+    .header-area h1 { font-size: 2.2rem; color: #5f1ed1; margin-bottom: 8px; }
+    .header-area p { font-size: 0.95rem; opacity: 0.8; }
+
+    /* 메인 스플릿 레이아웃 */
+    .content-wrapper {
+      display: flex;
+      gap: 30px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    /* 왼쪽: 8종 리스트 구조 */
+    .cursor-grid {
+      flex: 1.3;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .char-card {
+      background: #ffffff;
+      border: 2px solid #b5a7f5;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .char-card:hover, .char-card.active {
+      border-color: #7b2fff;
+      background-color: #f3efff;
+      transform: translateY(-2.5px);
+      box-shadow: 0 6px 12px rgba(123,47,255,0.1);
+    }
+    .char-avatar {
+      width: 44px; height: 44px;
+      background: #eef; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .char-info h3 { font-size: 1.1rem; color: #4a3b94; margin-bottom: 2px; }
+    .char-info p { font-size: 0.8rem; opacity: 0.7; }
+
+    /* 오른쪽: 미리보기 존 및 단독 다운로드 링크 제어기 */
+    .preview-box {
+      flex: 1;
+      background: #ffffff;
+      border: 3px dashed #7b2fff;
+      border-radius: 20px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 380px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      position: sticky; top: 40px;
+    }
+    
+    /* 실시간 커서 체험 공간 */
+    .preview-area-active {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: #fcfbff;
+      margin-bottom: 20px;
+      border: 1px solid #e8e5ff;
+    }
+    
+    .preview-tip { font-size: 0.9rem; color: #7b2fff; font-weight: bold; margin-bottom: 8px; }
+    .current-name { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; color: #332475; }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #7b2fff, #5f1ed1);
+      color: #fff;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(123, 47, 255, 0.3);
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+    .btn-download:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 20px rgba(123, 47, 255, 0.45);
+    }
+    
+    .btn-back {
+      margin-top: 30px;
+      text-decoration: none;
+      color: #6c5ce7;
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .content-wrapper { flex-direction: column; }
+      .cursor-grid { grid-template-columns: 1fr; }
+      .preview-box { min-height: 300px; position: static; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-area">
+    <h1>✦ 캐릭터 커서 연구소 ✦</h1>
+    <p>원하는 캐릭터를 선택해 우측 공간에서 커서를 미리보고 다운로드하세요!</p>
+  </div>
+
+  <div class="content-wrapper">
+    <div class="cursor-grid" id="grid-container">
+      </div>
+
+    <div class="preview-box">
+      <div class="preview-area-active" id="preview-zone">
+        <p class="preview-tip">✨ 마우스를 이 박스 안에 올려보세요!</p>
+        <div class="current-name" id="selected-title">캐릭터 포인터</div>
+        <p style="font-size:0.8rem; opacity:0.6;">작동 중인 커서 시연 영역</p>
+      </div>
+      
+      <a href="#" download id="download-link" class="btn-download">
+        📥 커서 파일 다운로드 받기
+      </a>
+    </div>
+  </div>
+
+  <a href="index.html" class="btn-back">◀ 메인 화면으로 돌아가기</a>
+
+<script>
+  // 📁 이제 별도의 ZIP 파일 없이, 각 캐릭터의 '이름-cur.png' 파일 하나만 사용합니다.
+  const CURSOR_DATA = [
+    { id: 1, name: "아르망", icon: "✈️", file: "armand-cur.png" },
+    { id: 2, name: "앙졸라", icon: "🇫🇷", file: "enjolras-cur.png" },
+    { id: 3, name: "벤자민", icon: "🕰️", file: "benjamin-cur.png" },
+    { id: 4, name: "앙드레", icon: "🌹", file: "andre-cur.png" },
+    { id: 5, name: "왕자", icon: "✨", file: "prince-cur.png" },
+    { id: 6, name: "브라운", icon: "📕", file: "brown-cur.png" },
+    { id: 7, name: "체", icon: "🇦🇷", file: "che-cur.png" },
+    { id: 8, name: "도미", icon: "🌕", file: "domi-cur.png" },
+  ];
+
+  const gridContainer = document.getElementById('grid-container');
+  const previewZone = document.getElementById('preview-zone');
+  const selectedTitle = document.getElementById('selected-title');
+  const downloadLink = document.getElementById('download-link');
+
+  // 8종 데이터 카드 렌더링 시스템
+  CURSOR_DATA.forEach((char, idx) => {
+    const card = document.createElement('div');
+    card.className = `char-card ${idx === 0 ? 'active' : ''}`;
+    card.innerHTML = `
+      <div class="char-avatar">${char.icon}</div>
+      <div class="char-info">
+        <h3>${char.name}</h3>
+        <p>클릭하여 테스트</p>
+      </div>
+    `;
+    
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      updateCursorPreview(char);
+    });
+    
+    gridContainer.appendChild(card);
+  });
+
+  // 실시간 미리보기 및 다운로드 경로를 PNG 파일 하나로 통일하는 로직
+  function updateCursorPreview(char) {
+    selectedTitle.textContent = `${char.name} 커서`;
+    
+    // 다운로드 버튼을 누르면 png 이미지 파일이 바로 다운로드되도록 설정
+    downloadLink.setAttribute('href', `cursors/${char.file}`);
+    downloadLink.innerHTML = `📥 ${char.name} 이미지 저장하기`;
+
+    // 미리보기 화면 마우스 커서 스타일 매핑
+    previewZone.style.cursor = `url('cursors/${char.file}') 0 0, auto`;
+  }
+
+  // 기본값 첫 번째 캐릭터 초기 탑재
+  updateCursorPreview(CURSOR_DATA[0]);
+</script>
+</body>
+</html>
