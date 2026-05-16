@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project Earth – 1단계: 우주 지도 완성</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght=400;700;900&family=Noto+Sans+KR:wght=300;400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
   :root {
     --bg:       #020510;
@@ -218,7 +218,7 @@
     position: relative;
     overflow: hidden;
     background: var(--deep);
-    touch-action: none; /* 모바일 드래그 시 스크롤 방지 보완 */
+    touch-action: none;
   }
   .puzzle-piece:hover {
     transform: scale(1.04);
@@ -286,7 +286,16 @@
     user-select: none;
   }
   .star-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.2); }
-  .star-card canvas { width: 80%; aspect-ratio: 1; margin: 0 auto 8px; display: block; }
+  
+  /* 별 이미지 비율 깨짐 방지 처리 (중앙 정렬 및 비율 유지) */
+  .star-card canvas { 
+    max-width: 100%; 
+    height: auto; 
+    aspect-ratio: 1;
+    margin: 0 auto 8px; 
+    display: block; 
+    object-fit: contain;
+  }
   .star-card .star-name {
     font-family: 'Orbitron', monospace;
     font-size: 9px;
@@ -294,12 +303,6 @@
     color: var(--dim);
     text-transform: uppercase;
     margin-top: 4px;
-  }
-  .star-card .star-desc {
-    font-size: 10px;
-    color: var(--dim);
-    margin-top: 3px;
-    line-height: 1.4;
   }
   .star-card.correct {
     border-color: var(--success);
@@ -632,11 +635,16 @@ function initPuzzle() {
       pc.setAttribute('draggable','true');
 
       const cv = document.createElement('canvas');
-      cv.width = cv.height = MAP_SIZE/2;
-      const cx = cv.getContext('2d');
       
+      // 지도 원본 이미지 비율 유지 연산 반영
+      const sourceWidth = s.w * mapImgObj.width;
+      const sourceHeight = s.h * mapImgObj.height;
+      cv.width = MAP_SIZE / 2;
+      cv.height = (cv.width * sourceHeight) / sourceWidth;
+
+      const cx = cv.getContext('2d');
       cx.drawImage(mapImgObj,
-        s.x * mapImgObj.width, s.y * mapImgObj.height, s.w * mapImgObj.width, s.h * mapImgObj.height,
+        s.x * mapImgObj.width, s.y * mapImgObj.height, sourceWidth, sourceHeight,
         0, 0, cv.width, cv.height
       );
       pc.appendChild(cv);
@@ -743,9 +751,13 @@ function placePiece(pid){
   const s = slots[pid];
   
   const img = document.createElement('canvas');
-  img.width = img.height = MAP_SIZE/2;
+  const sourceWidth = s.w * mapImgObj.width;
+  const sourceHeight = s.h * mapImgObj.height;
+  img.width = MAP_SIZE / 2;
+  img.height = (img.width * sourceHeight) / sourceWidth;
+
   img.getContext('2d').drawImage(mapImgObj,
-    s.x*mapImgObj.width, s.y*mapImgObj.height, s.w*mapImgObj.width, s.h*mapImgObj.height,
+    s.x*mapImgObj.width, s.y*mapImgObj.height, sourceWidth, sourceHeight,
     0, 0, img.width, img.height
   );
   img.style.cssText=`position:absolute;left:${s.x*100}%;top:${s.y*100}%;width:${s.w*100}%;height:${s.h*100}%;border-radius:4px;animation:pieceIn .35s ease;`;
