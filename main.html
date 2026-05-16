@@ -2,123 +2,151 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>C6H12O6 | Main</title>
-
   <style>
-
-
-     @font-face {
-            font-family: 'RomanticGumi';
-            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/GumiRomanceTTF.woff2') format('woff2');
-     }
+    @font-face {
+      font-family: 'RomanticGumi';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/GumiRomanceTTF.woff2') format('woff2');
+    }
     
-     body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden; 
-            background-color: #a29fdf;
-            font-family: 'RomanticGumi';
-     }
-       
-     #music-status {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 10px 15px;
-        background-color: rgba(255, 255, 255, 0.8);
-        color: #6c5ce7;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: bold;
-        z-index: 1000;
-        cursor: pointer;
-        border: 1px solid #6c5ce7;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-       
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden; 
+      background-color: #a29fdf;
+      font-family: 'RomanticGumi', sans-serif;
     }
 
-/* 우측 고정 버튼 컨테이너 (두 버튼을 세로로 정렬) */
-     .fixed-btn-group {
-        position: fixed;
-        right: 20px;
-        top: 55%; /* 화면 중앙 근처 */
-        transform: translateY(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 15px; /* 버튼 사이의 간격 */
-        z-index: 1000;
-     }
-
-    .nav-button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    
-        width: 90px;
-        height: 90px;
-        background-color: #ffffff;
-        border-radius: 50%;
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: bold;
-        text-align: center;
-        line-height: 1.3;
-        transition: all 0.3s ease;
+    /* ══ 상단 고정 BGM 상태 바 ══ */
+    #music-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background-color: rgba(255, 255, 255, 0.8);
+      color: #6c5ce7;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      z-index: 1000;
+      cursor: pointer;
+      border: 1px solid #6c5ce7;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.2s;
     }
 
-    /* 캐릭터 테스트 버튼 스타일 (기존 유지) */
-    .btn-test {
-        color: #6c5ce7;
-        border: 2px solid #a29bfe;
-        box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
+    /* ══ 핵심: 화면 3분할 플렉스 컨테이너 ══ */
+    .main-container {
+      display: flex;
+      flex-direction: row; /* 기본 PC 및 가로형 화면: 가로 3분할 */
+      width: 100%;
+      height: 100%;
     }
 
-    /* 미니게임 버튼 스타일 (새로 추가 - 더 강렬한 포인트 컬러) */
-    .btn-game {
-        color: #7b2fff; /* 조금 더 진한 보라색 */
-        border: 2px solid #7b2fff;
-        box-shadow: 0 4px 15px rgba(123, 47, 255, 0.2);
+    /* 분할 구역 공통 스타일 */
+    .menu-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      text-decoration: none;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      padding: 30px;
+      text-align: center;
+      overflow: hidden;
     }
 
-    .nav-button:hover {
-        background-color: #6c5ce7;
-        color: white;
-        transform: scale(1.1);
+    /* 섹션별 배경색 분리 및 디테일 그라데이션 */
+    .panel-test {
+      background: linear-gradient(135deg, #a29bfe, #8c7ae6);
+      color: #ffffff;
+    }
+    .panel-game {
+      background: linear-gradient(135deg, #7b2fff, #5f1ed1);
+      color: #ffffff;
+    }
+    .panel-cursor {
+      background: linear-gradient(135deg, #e0d9ff, #b5a7f5);
+      color: #4a3b94;
     }
 
-    .btn-game:hover {
-        background-color: #7b2fff; /* 게임 버튼 전용 호버 색상 */
+    /* 호버 시 파노라마 확장 이펙트 */
+    .menu-panel:hover {
+      flex: 1.2; /* 마우스 올린 구역이 더 넓어짐 */
+      filter: brightness(1.05);
     }
 
-    .nav-icon {
-        font-size: 1.5rem;
+    /* 텍스트 및 아이콘 레이아웃 구체화 */
+    .panel-icon {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      margin-bottom: 15px;
+      transition: transform 0.3s ease;
+    }
+    .menu-panel:hover .panel-icon {
+      transform: scale(1.15) translateY(-5px);
+    }
+
+    .panel-title {
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      font-weight: bold;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+    .panel-sub {
+      font-size: 0.9rem;
+      margin-top: 10px;
+      opacity: 0.85;
+      letter-spacing: 1px;
+    }
+
+    /* ══ 미디어 쿼리: 세로형 모바일 디바이스 분할 변환 ══ */
+    @media (max-width: 768px) and (orientation: portrait) {
+      .main-container {
+        flex-direction: column; /* 세로형 화면: 세로 3분할 */
+      }
+      .menu-panel {
+        width: 100%;
+        height: 33.333%;
+      }
+      .menu-panel:hover {
+        flex: 1; /* 모바일 터치 시에는 크기 불균형 레이아웃 해제 */
+      }
+      .panel-icon {
         margin-bottom: 5px;
-    }
-
+      }
     }
   </style>
 </head>
-
 <body>
+
   <div id="music-status" onclick="togglePlay()">확인 중...</div>
 
-  <div class="fixed-btn-group">
-    <a href="https://smore.im/quiz/xL1ophIsEs" target="_blank" class="nav-button btn-test">
-        <span class="nav-icon">🔮</span>
-        캐릭터<br>테스트
-    </a>
+  <div class="main-container">
     
-    <a href="level1.html" class="nav-button btn-game">
-        <span class="nav-icon">🚀</span>
-        Project:<br>Earth
+    <a href="https://smore.im/quiz/xL1ophIsEs" target="_blank" class="menu-panel panel-test">
+      <span class="panel-icon">🔮</span>
+      <h2 class="panel-title">캐릭터 테스트</h2>
+      <p class="panel-sub">나와 닮은 캐릭터 유형 찾기 ✦</p>
     </a>
-</div>
 
+    <a href="level1.html" class="menu-panel panel-game">
+      <span class="panel-icon">🚀</span>
+      <h2 class="panel-title">Project: Earth</h2>
+      <p class="panel-sub">뱀구멍을 돌파하는 우주 귀환 게임</p>
+    </a>
+
+    <a href="cursor.html" class="menu-panel panel-cursor">
+      <span class="panel-icon">🎨</span>
+      <h2 class="panel-title">캐릭터 커서</h2>
+      <p class="panel-sub">8종 스페셜 마우스 포인터 다운로드</p>
+    </a>
+
+  </div>
 
   <audio id="bgm" src="bgm.m4a" loop></audio>
 
@@ -126,7 +154,6 @@
     const bgm = document.getElementById('bgm');
     const statusDisplay = document.getElementById('music-status');
 
-    // 재생 상태 업데이트 함수
     function updateStatus() {
       if (!bgm.paused) {
         statusDisplay.innerText = "🎵 음악 재생 중";
@@ -139,7 +166,6 @@
       }
     }
 
-    // 클릭 시 재생/정지 토글
     function togglePlay() {
       if (bgm.paused) {
         bgm.play();
@@ -148,16 +174,13 @@
       }
     }
 
-    // 오디오 이벤트 리스너: 재생되거나 멈출 때 상태 업데이트
     bgm.onplay = updateStatus;
     bgm.onpause = updateStatus;
 
-    // 페이지 로드 시 자동 재생 시도
     window.onload = function() {
       bgm.play().then(() => {
         updateStatus();
       }).catch(() => {
-        // 자동 재생이 막혔을 경우
         statusDisplay.innerText = "🔇 클릭하여 음악 재생";
       });
     };
