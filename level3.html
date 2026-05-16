@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Project Earth – 3단계: 지구로 같이 가자!</title>
+<title>Project Earth – 3단계: 뱀구멍 탈출</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
@@ -272,13 +272,14 @@
 </div>
 
 <div class="overlay" id="start-screen">
-  <div class="big-title">🚀 지구로 같이 가자!</div>
+  <div class="big-title">🚀 뱀구멍 탈출</div>
   <p class="sub">
-    뱀구멍을 통과해서 지구로 갈 거야.<br>
-    <span>30초</span> 동안 쏟아지는 운석과 소행성을 피해야 해.<br>
+    뱀구멍을 통과해 지구로 귀환하라!<br>
+    <span>30초</span> 동안 쏟아지는 운석과 소행성을 피해라.<br>
+    HP가 0이 되기 전에 살아남아야 한다.<br><br>
     <span>PC:</span> WASD / 방향키 이동 &nbsp;|&nbsp; <span>모바일:</span> 버튼 터치
   </p>
-  <button class="btn btn-primary" onclick="startCountdown()">▶ 시작!</button>
+  <button class="btn btn-primary" onclick="startCountdown()">▶ 탈출 개시</button>
 </div>
 
 <div class="overlay hidden" id="countdown-screen">
@@ -287,7 +288,7 @@
 
 <div class="overlay hidden" id="fail-screen">
   <div class="fail-title">💥 격추됨</div>
-  <p>아야... 너무 많이 부딪혔나 봐.<br>잘 치료하고, 다시 도전하자!</p>
+  <p>운석에 충돌하여 탈출에 실패했습니다.<br>다시 도전하여 지구로 돌아가라!</p>
   <div class="btn-row">
     <button class="btn btn-danger" onclick="retryGame()">다시 시도</button>
   </div>
@@ -296,14 +297,14 @@
 <div class="overlay hidden" id="ending-screen">
   <canvas id="ending-canvas"></canvas>
   <div class="end-title" id="end-title" style="color:var(--gold)">🌍 지구 귀환 성공!</div>
-  <p class="end-sub">뱀구멍을 통과해서 마침내 지구에 도착했다.<br>왕자와 함께한 우주 귀환 작전, 임무 완료!</p>
+  <p class="end-sub">뱀구멍을 돌파하고 마침내 지구에 도착했다.<br>왕자와 함께한 우주 귀환 작전, 임무 완료!</p>
   <div class="score-board" id="score-board"></div>
   <div class="nickname-row">
     <input id="nickname-input" type="text" maxlength="12" placeholder="닉네임 입력..." />
     <button class="btn btn-gold" onclick="saveResult()" style="padding:13px 16px;">저장</button>
   </div>
   <div class="btn-row">
-    <button class="btn btn-primary" onclick="shareResult()">결과 공유</button>
+    <button class="btn btn-primary" onclick="shareResult()">트위터 공유</button>
     <button class="btn btn-danger"  onclick="retryGame()">다시 플레이</button>
   </div>
 </div>
@@ -339,12 +340,12 @@ ASSETS.meteors[1].src = 'meteor2.png';
 ASSETS.meteors[2].src = 'meteor3.png';
 
 /* ════════════════════════════════════════
-   CONSTANTS
+   CONSTANTS (규격 변경 반영)
 ════════════════════════════════════════ */
 const GAME_DURATION  = 30;    // 초
 const PLAYER_SPEED   = 4.5;
-const PLAYER_W       = 40;    
-const PLAYER_H       = 50;
+const PLAYER_W       = 80;    // 기존 40에서 200% 확대 (80)
+const PLAYER_H       = 100;   // 기존 50에서 200% 확대 (100)
 const MAX_HP         = 3;
 const INVINCIBLE_MS  = 1400;  
 
@@ -366,14 +367,11 @@ function resetGame(){
     spawnAcc:   0,
     spawnRate:  1400,   
     phase:      0,      
-    // 기존 코어 코드의 자동 우주 배경 생성기용 배열들
     bgStars:   [],
     warpLines: [],
-    // 플레이어 위치 및 물리
     px: 0, py: 0,
     pvx:0, pvy:0,
     invincible: 0,      
-    // 엔티티 관리
     asteroids: [],
     particles: [],
     dodged:    0,
@@ -384,7 +382,6 @@ function resetGame(){
   initProceduralStars();
 }
 
-// 실시간 코드 제어 우주 배경 초기화 (기존 코드 그대로 작동)
 function initProceduralStars(){
   G.bgStars = [];
   for(let i=0; i<80; i++){
@@ -409,7 +406,6 @@ function updateBackground(dt){
   const speedMult = 1 + G.phase*0.4;
   const dtF = dt * 60 / 1000;
 
-  // 우주 공간 무한 스크롤 및 워프 라인 실시간 갱신
   G.bgStars.forEach(s => {
     s.y += s.spd * speedMult * dtF;
     if(s.y > CH) { s.y = 0; s.x = Math.random()*CW; }
@@ -422,11 +418,9 @@ function updateBackground(dt){
 }
 
 function drawBackground(){
-  // 딥 스페이스 배경 베이스 그래픽 생성
   ctx.fillStyle = '#020512';
   ctx.fillRect(0,0,CW,CH);
 
-  // 1. 은하수 성단 별빛 렌더링
   G.bgStars.forEach(s => {
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
@@ -434,7 +428,6 @@ function drawBackground(){
     ctx.fill();
   });
 
-  // 2. 워프 이펙트 초고속 광선 라인 렌더링
   G.warpLines.forEach(w=>{
     ctx.beginPath();
     ctx.moveTo(w.x, w.y);
@@ -450,11 +443,10 @@ function drawBackground(){
 }
 
 /* ════════════════════════════════════════
-   PLAYER DRAWING (우주선 뒷모습 적용)
+   PLAYER DRAWING (200% 확대 & 불꽃 추진 이펙트 삭제)
 ════════════════════════════════════════ */
 function drawPlayer(){
   const x=G.px, y=G.py;
-  const t=Date.now()*.001;
 
   ctx.save();
   ctx.translate(x,y);
@@ -463,20 +455,10 @@ function drawPlayer(){
     ctx.globalAlpha=0.35;
   }
 
-  // 부스터 엔진 불꽃 이펙트
-  const flicker=Math.sin(t*18)*.15+.85;
-  ctx.save();
-  ctx.translate(0, PLAYER_H * 0.4);
-  drawFlame(ctx, -PLAYER_W * 0.2, 0, 6, 16 * flicker, '#00e5ff', '#7b2fff');
-  drawFlame(ctx,  PLAYER_W * 0.2, 0, 6, 16 * flicker, '#00e5ff', '#7b2fff');
-  drawFlame(ctx, 0, 4, 8, 24 * flicker, '#ffffff', '#00e5ff');
-  ctx.restore();
-
-  // 플레이어 우주선 뒷모습 이미지 매핑
+  // [수정] 불꽃 추진 연산 코드 구역 전체 완전히 삭제 및 순수 이미지 피팅
   if (ASSETS.ship.complete && ASSETS.ship.width > 0) {
     ctx.drawImage(ASSETS.ship, -PLAYER_W/2, -PLAYER_H/2, PLAYER_W, PLAYER_H);
   } else {
-    // 대체 벡터 파일
     ctx.beginPath();
     ctx.moveTo(0, -PLAYER_H/2);
     ctx.lineTo(-PLAYER_W/2,  PLAYER_H/2);
@@ -492,26 +474,15 @@ function drawPlayer(){
   ctx.restore();
 }
 
-function drawFlame(ctx, ox, oy, rx, ry, c1, c2){
-  const fg=ctx.createRadialGradient(ox,oy,0,ox,oy+ry*.5,ry);
-  fg.addColorStop(0,'rgba(255,255,255,.9)');
-  fg.addColorStop(.3,c1);
-  fg.addColorStop(.7,c2);
-  fg.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.beginPath();
-  ctx.ellipse(ox,oy+ry*.4,rx,ry,0,0,Math.PI*2);
-  ctx.fillStyle=fg;
-  ctx.fill();
-}
-
 /* ════════════════════════════════════════
-   ASTEROIDS (3종 이미지 랜덤 매핑)
+   ASTEROIDS (운석 기본 크기 상향 조정)
 ════════════════════════════════════════ */
 function spawnAsteroid(){
   const imgIdx = Math.floor(Math.random() * 3);
   const mImg = ASSETS.meteors[imgIdx];
 
-  const r = 16 + Math.random() * 12;
+  // [수정] 가시성 상향을 위해 최소/최대 반지름 상향 조정 (기존 16~28 -> 변경 24~38)
+  const r = 24 + Math.random() * 14;
   const phaseBonus = 1 + G.phase * 0.35;
   const spd  = (1.5 + Math.random() * 1.2) * phaseBonus;
   const x    = r + Math.random()*(CW - r*2);
@@ -553,7 +524,6 @@ function drawAsteroids(){
       ctx.fill();
     }
 
-    // 운석 에셋 그래픽 출력
     if (a.img.complete && a.img.width > 0) {
       ctx.drawImage(a.img, -a.r, -a.r, a.r*2, a.r*2);
     } else {
@@ -629,7 +599,8 @@ function drawParticles(){
 ════════════════════════════════════════ */
 function checkCollisions(){
   if(G.invincible>0) return;
-  const hitR = PLAYER_W*.38;
+  // 우주선 크기가 커진 만큼 충돌 히트박스 보정 최적화
+  const hitR = PLAYER_W*.35; 
   G.asteroids = G.asteroids.filter(a=>{
     const dx=G.px-a.x, dy=G.py-a.y;
     const dist=Math.sqrt(dx*dx+dy*dy);
@@ -680,7 +651,6 @@ function gameLoop(now){
   G.lastTime=now;
 
   G.timerAcc+=dt;
-  if(G.timerAcc+=dt){} // 빈 구문 보정 안정성 유지용
   if(G.timerAcc>=1000){
     G.timerAcc-=1000;
     G.timeLeft--;
@@ -914,8 +884,20 @@ function buildScoreBoard(){
 }
 
 /* ════════════════════════════════════════
-   닉네임 저장 / 공유
+   [수정] 트위터(X) 공유 활성화 연동
 ════════════════════════════════════════ */
+function shareResult(){
+  const name = document.getElementById('nickname-input').value.trim() || '익명 대원';
+  const finalScore = G.score; 
+  const survived = GAME_DURATION - G.timeLeft;
+  
+  const txt = `🚀 Project Earth 클리어!\n👾 ${name} · 점수: ${finalScore}점\n⏱️ 생존: ${survived}초 · 회피: ${G.dodged}회\n\n#ProjectEarth #지구귀환작전`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`;
+  
+  window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+  showToast('트위터 공유 창이 열렸습니다!', 'var(--success)');
+}
+
 function saveResult(){
   const name=document.getElementById('nickname-input').value.trim();
   if(!name){ showToast('닉네임을 입력하세요!','var(--danger)'); return; }
@@ -928,22 +910,6 @@ function saveResult(){
   }catch(e){
     showToast('저장 중 오류가 발생했습니다.','var(--danger)');
   }
-}
-
-function shareResult(){
-  const name = document.getElementById('nickname-input').value.trim() || '익명 대원';
-  const finalScore = G.score; // 최종 계산된 점수 반영
-  const survived = GAME_DURATION - G.timeLeft;
-  
-  // 트위터에 본문으로 들어갈 텍스트 (줄바꿈 문자는 %0A로 인코딩되어 적용됩니다)
-  const txt = `C₆H₁₂O₆: Project Earth✨ 클리어!\n👾 ${name} · 점수: ${finalScore}점\n⏱️ 생존: ${survived}초 · 회피: ${G.dodged}회`;
-  
-  // 트위터 공유 Intent URL 생성
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`;
-  
-  // 새 창으로 트위터 공유 창 열기
-  window.open(twitterUrl, '_blank', 'noopener,noreferrer');
-  showToast('트위터 공유 창이 열렸습니다!', 'var(--success)');
 }
 
 /* ════════════════════════════════════════
